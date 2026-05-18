@@ -8,62 +8,66 @@
   </head>
   <body>
     <main class="app-shell">
-      <aside class="panel input-panel">
-        <header>
-          <h1>gather</h1>
-        </header>
-
-        <form id="thought-form" class="thought-form">
-          <label>
-            <span>名前</span>
-            <input id="title-input" type="text" maxlength="24" placeholder="考えの名前" required />
-          </label>
-
-          <label>
-            <span>メモ</span>
-            <textarea id="note-input" maxlength="240" placeholder="少しだけ残す"></textarea>
-          </label>
-
-          <label>
-            <span>色</span>
-            <input id="color-input" type="color" value="#5b7cfa" />
-          </label>
-
-          <label>
-            <span>大きさ</span>
-            <input id="size-input" type="range" min="18" max="64" value="32" />
-          </label>
-
-          <button type="submit">追加</button>
-        </form>
-      </aside>
+      <header class="app-header">
+        <h1>gather</h1>
+        <div class="header-actions">
+          <button id="check-update" class="icon-button text-button" type="button" aria-label="更新">更新</button>
+          <button id="export-data" class="icon-button text-button" type="button" aria-label="エクスポート">出力</button>
+          <button id="import-data" class="icon-button text-button" type="button" aria-label="インポート">入力</button>
+          <input id="import-file" type="file" accept="application/json" hidden />
+          <button id="add-thought" class="icon-button add-button" type="button" aria-label="考えを追加">
+            +
+          </button>
+        </div>
+      </header>
 
       <section class="canvas-panel" aria-label="思考の場">
         <canvas id="gather-canvas"></canvas>
       </section>
-
-      <aside class="panel detail-panel">
-        <h2>選択中</h2>
-        <div id="empty-detail" class="empty-detail">円を選ぶと、ここに内容が表示されます。</div>
-        <article id="thought-detail" class="thought-detail" hidden>
-          <div class="detail-heading">
-            <span id="detail-color" class="detail-color"></span>
-            <h3 id="detail-title"></h3>
-          </div>
-          <p id="detail-note"></p>
-          <dl>
-            <div>
-              <dt>大きさ</dt>
-              <dd id="detail-size"></dd>
-            </div>
-          </dl>
-          <div class="detail-actions">
-            <button id="delete-thought" type="button">削除</button>
-          </div>
-        </article>
-      </aside>
     </main>
 
+    <dialog id="thought-dialog" class="thought-dialog">
+      <form id="thought-form" class="thought-form">
+        <div class="dialog-header">
+          <h2 id="dialog-title">考えを追加</h2>
+          <button id="close-dialog" class="icon-button" type="button" aria-label="閉じる">×</button>
+        </div>
+
+        <label>
+          <span>名前</span>
+          <input id="title-input" type="text" maxlength="24" placeholder="考えの名前" required />
+        </label>
+
+        <label>
+          <span>メモ</span>
+          <textarea id="note-input" maxlength="240" placeholder="少しだけ残す"></textarea>
+        </label>
+
+        <fieldset class="color-fieldset">
+          <legend>色</legend>
+          <div class="color-swatches" role="radiogroup" aria-label="色">
+            <button type="button" class="color-swatch" data-color="#7fb7be" aria-label="青緑"></button>
+            <button type="button" class="color-swatch" data-color="#f2b880" aria-label="琥珀"></button>
+            <button type="button" class="color-swatch" data-color="#d88c9a" aria-label="ローズ"></button>
+            <button type="button" class="color-swatch" data-color="#9ab87a" aria-label="若草"></button>
+            <button type="button" class="color-swatch" data-color="#b8a1d9" aria-label="藤"></button>
+          </div>
+          <input id="color-input" type="color" value="#7fb7be" aria-label="自由な色を選ぶ" />
+        </fieldset>
+
+        <label>
+          <span>大きさ</span>
+          <input id="size-input" type="range" min="18" max="64" value="32" />
+        </label>
+
+        <div class="dialog-actions">
+          <button id="delete-thought" class="secondary-button danger-button" type="button">削除</button>
+          <button id="save-thought" type="submit">保存</button>
+        </div>
+      </form>
+    </dialog>
+
+    <p id="status-message" class="status-message" role="status" aria-live="polite"></p>
     <script src="./script.js"></script>
   </body>
 </html>

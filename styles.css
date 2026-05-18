@@ -16,6 +16,7 @@
 
 html,
 body {
+  width: 100%;
   min-height: 100%;
 }
 
@@ -30,50 +31,114 @@ textarea {
   font: inherit;
 }
 
+button {
+  cursor: pointer;
+}
+
 .app-shell {
+  position: relative;
   min-height: 100svh;
-  display: grid;
-  grid-template-columns: 260px minmax(420px, 1fr) 260px;
+  overflow: hidden;
 }
 
-.panel {
-  padding: 24px;
-  background: #fff;
+.app-header {
+  position: absolute;
+  z-index: 2;
+  top: 18px;
+  left: 18px;
+  right: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
 }
 
-.input-panel {
-  border-right: 1px solid #e2e5ea;
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: auto;
 }
 
-.detail-panel {
-  border-left: 1px solid #e2e5ea;
-}
-
-h1,
-h2,
-h3 {
+.app-header h1 {
   margin: 0;
+  font-size: 24px;
   letter-spacing: 0;
 }
 
-h1 {
+.icon-button {
+  display: inline-grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid rgba(23, 32, 51, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.76);
+  color: #172033;
+  line-height: 1;
+  backdrop-filter: blur(12px);
+}
+
+.add-button {
   font-size: 28px;
 }
 
-h2 {
-  margin-bottom: 18px;
-  font-size: 18px;
+.text-button {
+  width: auto;
+  min-width: 40px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 13px;
+}
+
+.canvas-panel {
+  min-height: 100svh;
+}
+
+#gather-canvas {
+  display: block;
+  width: 100%;
+  height: 100svh;
+}
+
+.thought-dialog {
+  width: min(420px, calc(100vw - 32px));
+  border: 0;
+  border-radius: 8px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 22px 70px rgba(23, 32, 51, 0.18);
+}
+
+.thought-dialog::backdrop {
+  background: rgba(23, 32, 51, 0.2);
+  backdrop-filter: blur(4px);
 }
 
 .thought-form {
   display: grid;
   gap: 16px;
-  margin-top: 24px;
+  padding: 18px;
 }
 
-.thought-form label {
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dialog-header h2 {
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: 0;
+}
+
+.thought-form label,
+.color-fieldset {
   display: grid;
   gap: 7px;
+  margin: 0;
   color: #64748b;
   font-size: 14px;
 }
@@ -93,9 +158,55 @@ h2 {
 }
 
 .thought-form textarea {
-  min-height: 108px;
+  min-height: 96px;
   resize: vertical;
   padding: 12px;
+}
+
+.color-fieldset {
+  border: 0;
+  padding: 0;
+}
+
+.color-fieldset legend {
+  padding: 0;
+}
+
+.color-swatches {
+  display: flex;
+  gap: 8px;
+}
+
+.color-swatch {
+  width: 28px;
+  height: 28px;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  padding: 0;
+}
+
+.color-swatch.is-selected {
+  border-color: #172033;
+}
+
+.color-swatch[data-color="#7fb7be"] {
+  background: #7fb7be;
+}
+
+.color-swatch[data-color="#f2b880"] {
+  background: #f2b880;
+}
+
+.color-swatch[data-color="#d88c9a"] {
+  background: #d88c9a;
+}
+
+.color-swatch[data-color="#9ab87a"] {
+  background: #9ab87a;
+}
+
+.color-swatch[data-color="#b8a1d9"] {
+  background: #b8a1d9;
 }
 
 .thought-form input[type="color"] {
@@ -107,95 +218,73 @@ h2 {
   background: #fff;
 }
 
-.thought-form button {
-  min-height: 44px;
-  border: 0;
-  border-radius: 8px;
-  background: #172033;
-  color: #fff;
-  cursor: pointer;
-}
-
-.canvas-panel {
-  position: relative;
-  min-height: 100svh;
-}
-
-#gather-canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.empty-detail {
-  color: #64748b;
-  line-height: 1.6;
-}
-
-.thought-detail {
-  display: grid;
-  gap: 18px;
-}
-
-.detail-heading {
+.dialog-actions {
   display: flex;
-  align-items: center;
+  justify-content: flex-end;
   gap: 10px;
 }
 
-.detail-color {
-  width: 16px;
-  height: 16px;
-  border-radius: 999px;
-}
-
-.thought-detail p {
-  margin: 0;
-  color: #475569;
-  line-height: 1.7;
-  white-space: pre-wrap;
-}
-
-.thought-detail dl {
-  margin: 0;
-}
-
-.thought-detail dl div {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.thought-detail dt {
-  color: #64748b;
-}
-
-.thought-detail dd {
-  margin: 0;
-}
-
-.detail-actions button {
-  min-height: 38px;
+.thought-form button[type="submit"],
+.secondary-button {
+  min-height: 42px;
   border: 0;
   border-radius: 8px;
   padding: 0 14px;
-  background: #eef1f5;
-  color: #334155;
-  cursor: pointer;
 }
 
-@media (max-width: 900px) {
-  .app-shell {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto minmax(420px, 1fr) auto;
+.thought-form button[type="submit"] {
+  background: #172033;
+  color: #fff;
+}
+
+.secondary-button {
+  background: #eef1f5;
+  color: #334155;
+}
+
+.danger-button {
+  margin-right: auto;
+  color: #9f2430;
+}
+
+.status-message {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 3;
+  margin: 0;
+  min-height: 38px;
+  border-radius: 8px;
+  background: #172033;
+  color: #fff;
+  padding: 10px 14px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.status-message:not(:empty) {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+[hidden] {
+  display: none !important;
+}
+
+@media (max-width: 640px) {
+  .app-header {
+    top: 14px;
+    left: 14px;
+    right: 14px;
   }
 
-  .input-panel,
-  .detail-panel {
-    border: 0;
+  .thought-dialog {
+    width: calc(100vw - 24px);
   }
 
-  .canvas-panel {
-    min-height: 56svh;
+  .header-actions {
+    gap: 6px;
   }
 }

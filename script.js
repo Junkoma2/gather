@@ -20,6 +20,7 @@ const exportButton = document.querySelector('#export-data')
 const importButton = document.querySelector('#import-data')
 const importFile = document.querySelector('#import-file')
 const statusMessage = document.querySelector('#status-message')
+const customColorPreview = document.querySelector('#custom-color-preview')
 
 let thoughts = loadThoughts()
 let editingId = null
@@ -278,9 +279,15 @@ function getPointerPosition(event) {
 }
 
 function selectSwatch(color) {
+  const lc = color.toLowerCase()
   colorSwatches.forEach(swatch => {
-    swatch.classList.toggle('is-selected', swatch.dataset.color === color.toLowerCase())
+    swatch.classList.toggle('is-selected', swatch.dataset.color === lc)
   })
+  const isPreset = colorSwatches.some(s => s.dataset.color === lc)
+  if (customColorPreview) {
+    customColorPreview.style.setProperty('--custom-color', color)
+    customColorPreview.style.opacity = isPreset ? '0.4' : '1'
+  }
 }
 
 function openCreateDialog() {

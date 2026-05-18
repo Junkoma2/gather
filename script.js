@@ -227,8 +227,21 @@ function updatePhysics() {
   })
 }
 
+function drawEmptyState() {
+  ctx.fillStyle = 'rgba(23, 32, 51, 0.28)'
+  ctx.font = '15px sans-serif'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText('+ ボタンで考えを追加できます', width / 2, height / 2)
+}
+
 function draw() {
   ctx.clearRect(0, 0, width, height)
+
+  if (thoughts.length === 0) {
+    drawEmptyState()
+    return
+  }
 
   thoughts.forEach(thought => {
     const isEditing = thought.id === editingId

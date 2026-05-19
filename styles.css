@@ -91,6 +91,12 @@ button {
   font-size: 13px;
 }
 
+.icon-button.is-active {
+  background: #172033;
+  color: #fff;
+  border-color: #172033;
+}
+
 .canvas-panel {
   min-height: 100svh;
 }

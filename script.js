@@ -225,6 +225,7 @@ function blendHues(thoughtA, thoughtB) {
 }
 
 function enterBlendMode() {
+  closeMenu()
   isBlendMode = true
   selectedIds = []
   blendModeButton.classList.add('is-active')
@@ -232,6 +233,7 @@ function enterBlendMode() {
 }
 
 function exitBlendMode() {
+  showStatus('')
   isBlendMode = false
   selectedIds = []
   blendModeButton.classList.remove('is-active')

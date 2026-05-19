@@ -1,6 +1,7 @@
 const STORAGE_KEY = 'gather-thoughts'
 const DEFAULT_COLOR = '#7fb7be'
 const DEFAULT_SIZE = 32
+const HINT_SHOWN_KEY = 'gather-hint-shown'
 
 const addThoughtButton = document.querySelector('#add-thought')
 const dialog = document.querySelector('#thought-dialog')
@@ -371,8 +372,13 @@ checkUpdateButton.addEventListener('click', checkForUpdate)
 
 form.addEventListener('submit', event => {
   event.preventDefault()
+  const isFirst = thoughts.length === 0
   updateThoughtFromForm()
   closeDialog()
+  if (isFirst && !localStorage.getItem(HINT_SHOWN_KEY)) {
+    localStorage.setItem(HINT_SHOWN_KEY, '1')
+    showStatus('円をタップすると内容を確認・編集できます')
+  }
 })
 
 colorSwatches.forEach(swatch => {

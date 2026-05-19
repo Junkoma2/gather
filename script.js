@@ -43,7 +43,11 @@ function loadThoughts() {
 }
 
 function saveThoughts() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(thoughts))
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(thoughts))
+  } catch {
+    showStatus('保存に失敗しました')
+  }
 }
 
 function showStatus(message) {

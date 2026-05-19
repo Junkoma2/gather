@@ -441,11 +441,14 @@ function updateThoughtFromForm() {
 function openMenu() {
   actionMenu.hidden = false
   menuButton.setAttribute('aria-expanded', 'true')
+  const firstItem = actionMenu.querySelector('button, [href]')
+  if (firstItem) firstItem.focus()
 }
 
 function closeMenu() {
   actionMenu.hidden = true
   menuButton.setAttribute('aria-expanded', 'false')
+  menuButton.focus()
 }
 
 menuButton.addEventListener('click', event => {
@@ -542,7 +545,10 @@ dialog.addEventListener('click', event => {
 })
 
 document.addEventListener('keydown', event => {
-  if (event.key === 'Escape' && isBlendMode) exitBlendMode()
+  if (event.key === 'Escape') {
+    if (!actionMenu.hidden) { closeMenu(); return }
+    if (isBlendMode) exitBlendMode()
+  }
 })
 
 window.addEventListener('resize', resizeCanvas)

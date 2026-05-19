@@ -58,10 +58,14 @@
           </label>
         </fieldset>
 
-        <label>
+        <div class="size-field">
           <span>大きさ</span>
           <input id="size-input" type="range" min="18" max="64" value="32" />
-        </label>
+          <div class="size-labels" aria-hidden="true">
+            <span>小</span>
+            <span>大</span>
+          </div>
+        </div>
 
         <div class="dialog-actions">
           <button id="delete-thought" class="secondary-button danger-button" type="button">削除</button>

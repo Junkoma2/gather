@@ -23,6 +23,8 @@ const importFile = document.querySelector('#import-file')
 const statusMessage = document.querySelector('#status-message')
 const customColorPreview = document.querySelector('#custom-color-preview')
 const blendModeButton = document.querySelector('#blend-mode')
+const menuButton = document.querySelector('#menu-button')
+const actionMenu = document.querySelector('.action-menu')
 
 let thoughts = loadThoughts()
 let editingId = null
@@ -434,6 +436,28 @@ function updateThoughtFromForm() {
   saveThoughts()
 }
 
+function openMenu() {
+  actionMenu.hidden = false
+  menuButton.setAttribute('aria-expanded', 'true')
+}
+
+function closeMenu() {
+  actionMenu.hidden = true
+  menuButton.setAttribute('aria-expanded', 'false')
+}
+
+menuButton.addEventListener('click', event => {
+  event.stopPropagation()
+  if (actionMenu.hidden) openMenu()
+  else closeMenu()
+})
+
+document.addEventListener('click', () => closeMenu())
+
+actionMenu.addEventListener('click', event => {
+  event.stopPropagation()
+})
+
 blendModeButton.addEventListener('click', () => {
   if (isBlendMode) exitBlendMode()
   else enterBlendMode()
@@ -441,10 +465,10 @@ blendModeButton.addEventListener('click', () => {
 
 addThoughtButton.addEventListener('click', openCreateDialog)
 closeDialogButton.addEventListener('click', closeDialog)
-exportButton.addEventListener('click', exportThoughts)
-importButton.addEventListener('click', () => importFile.click())
+exportButton.addEventListener('click', () => { closeMenu(); exportThoughts() })
+importButton.addEventListener('click', () => { closeMenu(); importFile.click() })
 importFile.addEventListener('change', event => importThoughts(event.target.files?.[0]))
-checkUpdateButton.addEventListener('click', checkForUpdate)
+checkUpdateButton.addEventListener('click', () => { closeMenu(); checkForUpdate() })
 
 form.addEventListener('submit', event => {
   event.preventDefault()

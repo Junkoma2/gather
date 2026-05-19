@@ -176,12 +176,50 @@ function createThought(title, note, color, size) {
   }
 }
 
+function hexToHsl(hex) {
+  const value = hex.replace('#', '')
+  const r = parseInt(value.slice(0, 2), 16) / 255
+  const g = parseInt(value.slice(2, 4), 16) / 255
+  const b = parseInt(value.slice(4, 6), 16) / 255
+  const max = Math.max(r, g, b)
+  const min = Math.min(r, g, b)
+  const l = (max + min) / 2
+  if (max === min) return { h: 0, s: 0, l }
+  const delta = max - min
+  const s = l > 0.5 ? delta / (2 - max - min) : delta / (max + min)
+  let h
+  if (max === r) h = ((g - b) / delta) % 6
+  else if (max === g) h = (b - r) / delta + 2
+  else h = (r - g) / delta + 4
+  h = (h * 60 + 360) % 360
+  return { h, s, l }
+}
+
+function hslToHex(h, s, l) {
+  const c = (1 - Math.abs(2 * l - 1)) * s
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1))
+  const m = l - c / 2
+  let r, g, b
+  if (h < 60) { r = c; g = x; b = 0 }
+  else if (h < 120) { r = x; g = c; b = 0 }
+  else if (h < 180) { r = 0; g = c; b = x }
+  else if (h < 240) { r = 0; g = x; b = c }
+  else if (h < 300) { r = x; g = 0; b = c }
+  else { r = c; g = 0; b = x }
+  const toHex = v => Math.round((v + m) * 255).toString(16).padStart(2, '0')
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`
+}
+
 function blendHues(thoughtA, thoughtB) {
   const diff = thoughtB.hue - thoughtA.hue
   const adjusted = ((diff + 540) % 360) - 180
   const newHue = (thoughtA.hue + adjusted / 2 + 360) % 360
   thoughtA.hue = newHue
   thoughtB.hue = newHue
+  const hslA = hexToHsl(thoughtA.color)
+  thoughtA.color = hslToHex(newHue, hslA.s, hslA.l)
+  const hslB = hexToHsl(thoughtB.color)
+  thoughtB.color = hslToHex(newHue, hslB.s, hslB.l)
 }
 
 function enterBlendMode() {

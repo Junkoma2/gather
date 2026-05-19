@@ -1,4 +1,35 @@
 const STORAGE_KEY = 'gather-thoughts'
+const statusMessage = document.createElement('div')
+statusMessage.className = 'status-message'
+statusMessage.setAttribute('aria-live', 'polite')
+document.body.appendChild(statusMessage)
+
+function showStatus(message) {
+  statusMessage.textContent = message
+  window.clearTimeout(showStatus.timer)
+  showStatus.timer = window.setTimeout(() => {
+    statusMessage.textContent = ''
+  }, 2600)
+}
+
+async function checkForUpdate() {
+  if (!('serviceWorker' in navigator)) {
+    window.location.reload()
+    return
+  }
+  const registration = await navigator.serviceWorker.getRegistration()
+  if (!registration) {
+    window.location.reload()
+    return
+  }
+  await registration.update()
+  if (registration.waiting) {
+    registration.waiting.postMessage({ type: 'SKIP_WAITING' })
+    showStatus('更新を適用しています')
+    return
+  }
+  showStatus('最新です')
+}
 
 const form = document.querySelector('#thought-form')
 const titleInput = document.querySelector('#title-input')
@@ -245,3 +276,87 @@ animationFrame = requestAnimationFrame(tick)
 window.addEventListener('beforeunload', () => {
   if (animationFrame) cancelAnimationFrame(animationFrame)
 })
+
+// --- 下スワイプ更新 ---
+const PULL_THRESHOLD = 80
+
+let pullStartY = null
+let pullY = 0
+let pullBlockedByCircle = false
+
+const pullIndicator = document.createElement('div')
+pullIndicator.className = 'pull-indicator'
+pullIndicator.setAttribute('aria-live', 'polite')
+document.body.prepend(pullIndicator)
+
+function setPullIndicator(text, isComplete) {
+  pullIndicator.textContent = text
+  pullIndicator.classList.toggle('complete', Boolean(isComplete))
+}
+
+function updatePullIndicatorHeight(y) {
+  pullIndicator.style.height = y > 0 ? (y + 'px') : ''
+  pullIndicator.style.opacity = y > 0 ? String(Math.min(y / PULL_THRESHOLD, 1)) : ''
+}
+
+function hitTestCircle(clientX, clientY) {
+  const rect = canvas.getBoundingClientRect()
+  const x = clientX - rect.left
+  const y = clientY - rect.top
+  return thoughts.some(thought => Math.hypot(x - thought.x, y - thought.y) <= thought.radius)
+}
+
+canvas.addEventListener('touchstart', event => {
+  if (window.scrollY > 0) {
+    pullBlockedByCircle = true
+    return
+  }
+  const touch = event.touches[0]
+  if (hitTestCircle(touch.clientX, touch.clientY)) {
+    pullBlockedByCircle = true
+    pullStartY = null
+    return
+  }
+  pullBlockedByCircle = false
+  pullStartY = touch.clientY
+}, { passive: true })
+
+canvas.addEventListener('touchmove', event => {
+  if (pullStartY === null || pullBlockedByCircle) return
+  const dy = event.touches[0].clientY - pullStartY
+  if (dy <= 0) {
+    pullStartY = null
+    return
+  }
+  const visual = dy * 0.4
+  pullY = visual <= PULL_THRESHOLD
+    ? visual
+    : Math.min(PULL_THRESHOLD + (visual - PULL_THRESHOLD) * 0.3, PULL_THRESHOLD + 50)
+  updatePullIndicatorHeight(pullY)
+  setPullIndicator(pullY >= PULL_THRESHOLD ? '放して更新' : '引っ張って更新', false)
+}, { passive: true })
+
+canvas.addEventListener('touchend', async () => {
+  if (pullStartY === null || pullBlockedByCircle) {
+    pullBlockedByCircle = false
+    return
+  }
+  pullStartY = null
+  if (pullY < PULL_THRESHOLD) {
+    updatePullIndicatorHeight(0)
+    pullY = 0
+    return
+  }
+  pullY = 0
+  setPullIndicator('更新中…', false)
+  updatePullIndicatorHeight(PULL_THRESHOLD)
+
+  await checkForUpdate()
+
+  setPullIndicator('完了', true)
+  setTimeout(() => {
+    updatePullIndicatorHeight(0)
+    setTimeout(() => setPullIndicator('', false), 400)
+  }, 700)
+})
+// --- 下スワイプ更新ここまで ---

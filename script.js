@@ -188,6 +188,7 @@ function enterBlendMode() {
   isBlendMode = true
   selectedIds = []
   blendModeButton.classList.add('is-active')
+  showStatus('2つの円をタップしてください')
 }
 
 function exitBlendMode() {
@@ -436,9 +437,15 @@ canvas.addEventListener('click', event => {
   })
 
   if (isBlendMode) {
-    if (!found) return
-    if (selectedIds.includes(found.id)) return
+    if (!found) { exitBlendMode(); return }
+    if (selectedIds.includes(found.id)) {
+      showStatus('同じ円は選べません')
+      return
+    }
     selectedIds = [...selectedIds, found.id]
+    if (selectedIds.length === 1) {
+      showStatus('もう1つの円をタップしてください')
+    }
     if (selectedIds.length === 2) {
       const [a, b] = selectedIds.map(id => thoughts.find(t => t.id === id))
       blendHues(a, b)
@@ -468,6 +475,10 @@ dialog.addEventListener('click', event => {
     event.clientX <= rect.right
 
   if (!isInDialog) closeDialog()
+})
+
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && isBlendMode) exitBlendMode()
 })
 
 window.addEventListener('resize', resizeCanvas)

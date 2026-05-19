@@ -1,4 +1,18 @@
 const STORAGE_KEY = 'gather-thoughts'
+const HINT_SHOWN_KEY = 'gather-hint-shown'
+
+const statusMessage = document.createElement('div')
+statusMessage.className = 'status-message'
+statusMessage.setAttribute('aria-live', 'polite')
+document.body.appendChild(statusMessage)
+
+function showStatus(message) {
+  statusMessage.textContent = message
+  window.clearTimeout(showStatus.timer)
+  showStatus.timer = window.setTimeout(() => {
+    statusMessage.textContent = ''
+  }, 3200)
+}
 
 const form = document.querySelector('#thought-form')
 const titleInput = document.querySelector('#title-input')
@@ -207,6 +221,7 @@ function getPointerPosition(event) {
 
 form.addEventListener('submit', event => {
   event.preventDefault()
+  const isFirst = thoughts.length === 0
   addThought(
     titleInput.value.trim(),
     noteInput.value.trim(),
@@ -217,6 +232,11 @@ form.addEventListener('submit', event => {
   colorInput.value = '#5b7cfa'
   sizeInput.value = '32'
   titleInput.focus()
+
+  if (isFirst && !localStorage.getItem(HINT_SHOWN_KEY)) {
+    localStorage.setItem(HINT_SHOWN_KEY, '1')
+    showStatus('円をタップすると内容を確認・編集できます')
+  }
 })
 
 canvas.addEventListener('click', event => {

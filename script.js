@@ -528,6 +528,8 @@ canvas.addEventListener('click', event => {
 
 deleteThoughtButton.addEventListener('click', () => {
   if (!editingId) return
+  const thought = thoughts.find(t => t.id === editingId)
+  if (!window.confirm(`「${thought?.title || '円'}」を削除しますか？`)) return
   thoughts = thoughts.filter(thought => thought.id !== editingId)
   saveThoughts()
   closeDialog()

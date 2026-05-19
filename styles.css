@@ -404,7 +404,7 @@ button {
 
 @media (max-width: 640px) {
   .app-header {
-    top: 14px;
+    top: calc(14px + env(safe-area-inset-top, 0px));
     left: 14px;
     right: 14px;
   }

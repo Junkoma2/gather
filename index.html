@@ -11,9 +11,9 @@
       <header class="app-header">
         <h1>gather</h1>
         <div class="header-actions">
-          <button id="check-update" class="icon-button text-button" type="button" aria-label="更新">更新</button>
-          <button id="export-data" class="icon-button text-button" type="button" aria-label="エクスポート">出力</button>
-          <button id="import-data" class="icon-button text-button" type="button" aria-label="インポート">入力</button>
+          <button id="check-update" class="icon-button text-button" type="button" aria-label="更新を確認">更新を確認</button>
+          <button id="export-data" class="icon-button text-button" type="button" aria-label="エクスポート">エクスポート</button>
+          <button id="import-data" class="icon-button text-button" type="button" aria-label="インポート">インポート</button>
           <input id="import-file" type="file" accept="application/json" hidden />
           <button id="add-thought" class="icon-button add-button" type="button" aria-label="考えを追加">
             +
@@ -52,7 +52,10 @@
             <button type="button" class="color-swatch" data-color="#9ab87a" aria-label="若草"></button>
             <button type="button" class="color-swatch" data-color="#b8a1d9" aria-label="藤"></button>
           </div>
-          <input id="color-input" type="color" value="#7fb7be" aria-label="自由な色を選ぶ" />
+          <label class="custom-color-label" aria-label="自由な色を選ぶ" title="その他の色">
+            <span class="custom-color-swatch" id="custom-color-preview"></span>
+            <input id="color-input" type="color" value="#7fb7be" />
+          </label>
         </fieldset>
 
         <label>

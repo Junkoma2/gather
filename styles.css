@@ -209,13 +209,29 @@ button {
   background: #b8a1d9;
 }
 
+.custom-color-label {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.custom-color-swatch {
+  display: block;
+  width: 28px;
+  height: 28px;
+  border: 2px dashed rgba(23, 32, 51, 0.32);
+  border-radius: 999px;
+  background: var(--custom-color, #7fb7be);
+}
+
 .thought-form input[type="color"] {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  min-height: 42px;
-  padding: 4px;
-  border: 1px solid #d8dde5;
-  border-radius: 8px;
-  background: #fff;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
 }
 
 .dialog-actions {

@@ -22,12 +22,15 @@ const importButton = document.querySelector('#import-data')
 const importFile = document.querySelector('#import-file')
 const statusMessage = document.querySelector('#status-message')
 const customColorPreview = document.querySelector('#custom-color-preview')
+const blendModeButton = document.querySelector('#blend-mode')
 
 let thoughts = loadThoughts()
 let editingId = null
 let width = 0
 let height = 0
 let animationFrame = null
+let isBlendMode = false
+let selectedIds = []
 
 function loadThoughts() {
   try {
@@ -173,6 +176,26 @@ function createThought(title, note, color, size) {
   }
 }
 
+function blendHues(thoughtA, thoughtB) {
+  const diff = thoughtB.hue - thoughtA.hue
+  const adjusted = ((diff + 540) % 360) - 180
+  const newHue = (thoughtA.hue + adjusted / 2 + 360) % 360
+  thoughtA.hue = newHue
+  thoughtB.hue = newHue
+}
+
+function enterBlendMode() {
+  isBlendMode = true
+  selectedIds = []
+  blendModeButton.classList.add('is-active')
+}
+
+function exitBlendMode() {
+  isBlendMode = false
+  selectedIds = []
+  blendModeButton.classList.remove('is-active')
+}
+
 function updatePhysics() {
   for (let i = 0; i < thoughts.length; i += 1) {
     const a = thoughts[i]
@@ -247,10 +270,11 @@ function draw() {
 
   thoughts.forEach(thought => {
     const isEditing = thought.id === editingId
+    const isSelected = selectedIds.includes(thought.id)
     ctx.beginPath()
     ctx.arc(thought.x, thought.y, thought.radius, 0, Math.PI * 2)
     ctx.fillStyle = thought.color
-    ctx.globalAlpha = isEditing ? 0.72 : 0.52
+    ctx.globalAlpha = isEditing || isSelected ? 0.72 : 0.52
     ctx.fill()
     ctx.globalAlpha = 1
 
@@ -258,6 +282,14 @@ function draw() {
       ctx.lineWidth = 2
       ctx.strokeStyle = '#172033'
       ctx.stroke()
+    }
+
+    if (isSelected) {
+      ctx.lineWidth = 2
+      ctx.setLineDash([5, 4])
+      ctx.strokeStyle = '#172033'
+      ctx.stroke()
+      ctx.setLineDash([])
     }
 
     ctx.fillStyle = '#172033'
@@ -363,6 +395,11 @@ function updateThoughtFromForm() {
   saveThoughts()
 }
 
+blendModeButton.addEventListener('click', () => {
+  if (isBlendMode) exitBlendMode()
+  else enterBlendMode()
+})
+
 addThoughtButton.addEventListener('click', openCreateDialog)
 closeDialogButton.addEventListener('click', closeDialog)
 exportButton.addEventListener('click', exportThoughts)
@@ -397,6 +434,20 @@ canvas.addEventListener('click', event => {
   const found = [...thoughts].reverse().find(thought => {
     return Math.hypot(pointer.x - thought.x, pointer.y - thought.y) <= thought.radius
   })
+
+  if (isBlendMode) {
+    if (!found) return
+    if (selectedIds.includes(found.id)) return
+    selectedIds = [...selectedIds, found.id]
+    if (selectedIds.length === 2) {
+      const [a, b] = selectedIds.map(id => thoughts.find(t => t.id === id))
+      blendHues(a, b)
+      saveThoughts()
+      exitBlendMode()
+      showStatus('色を近づけました')
+    }
+    return
+  }
 
   if (found) openEditDialog(found.id)
 })

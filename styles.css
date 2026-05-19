@@ -44,7 +44,7 @@ button {
 .app-header {
   position: absolute;
   z-index: 2;
-  top: 18px;
+  top: calc(18px + env(safe-area-inset-top, 0px));
   left: 18px;
   right: 18px;
   display: flex;
@@ -250,7 +250,7 @@ button {
 .status-message {
   position: fixed;
   right: 16px;
-  bottom: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   z-index: 3;
   margin: 0;
   min-height: 38px;

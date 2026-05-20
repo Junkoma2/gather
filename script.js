@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'gather-thoughts'
+﻿const STORAGE_KEY = 'gather-thoughts'
 const DEFAULT_COLOR = '#7fb7be'
 const DEFAULT_SIZE = 32
 const HINT_SHOWN_KEY = 'gather-hint-shown'
@@ -23,6 +23,7 @@ const importFile = document.querySelector('#import-file')
 const statusMessage = document.querySelector('#status-message')
 const customColorPreview = document.querySelector('#custom-color-preview')
 const blendModeButton = document.querySelector('#blend-mode')
+const blendStrengthInput = document.querySelector('#blend-strength')
 const menuButton = document.querySelector('#menu-button')
 const actionMenu = document.querySelector('.action-menu')
 const sizePreviewCircle = document.querySelector('#size-preview-circle')
@@ -218,7 +219,7 @@ function hslToHex(h, s, l) {
 }
 
 function blendHues(thoughtA, thoughtB) {
-  const strength = parseInt(document.querySelector('#blend-strength').value) / 100
+  const strength = blendStrengthInput ? parseInt(blendStrengthInput.value) / 100 : 0.3
   const diff = thoughtB.hue - thoughtA.hue
   const adjusted = ((diff + 540) % 360) - 180
   const newHueA = (thoughtA.hue + adjusted / 2 * strength + 360) % 360
@@ -236,6 +237,7 @@ function enterBlendMode() {
   isBlendMode = true
   selectedIds = []
   blendModeButton.classList.add('is-active')
+  if (blendStrengthInput) blendStrengthInput.hidden = false
   blendModeButton.textContent = 'キャンセル'
   blendModeButton.setAttribute('aria-label', 'つなぐモードをキャンセル')
   showStatus('2つの円をタップしてください')
@@ -246,6 +248,7 @@ function exitBlendMode() {
   isBlendMode = false
   selectedIds = []
   blendModeButton.classList.remove('is-active')
+  if (blendStrengthInput) blendStrengthInput.hidden = true
   blendModeButton.textContent = 'つなぐ'
   blendModeButton.setAttribute('aria-label', '2つの円を選んで色を近づける')
 }

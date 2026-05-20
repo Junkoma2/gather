@@ -11,7 +11,10 @@
       <header class="app-header">
         <h1>gather</h1>
         <div class="header-actions">
-          <button id="blend-mode" class="icon-button text-button" type="button" aria-label="2つの円を選んで色を近づける">つなぐ</button>
+          <div class="blend-control">
+            <button id="blend-mode" class="icon-button text-button" type="button" aria-label="2つの円を選んで色を近づける">つなぐ</button>
+            <input id="blend-strength" type="range" min="1" max="100" value="30" aria-label="色の近づき度合い" />
+          </div>
           <div class="menu-wrapper">
             <button id="menu-button" class="icon-button" type="button" aria-label="メニューを開く" aria-expanded="false" aria-haspopup="true">⋮</button>
             <div class="action-menu" role="menu" hidden>

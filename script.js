@@ -217,15 +217,17 @@ function hslToHex(h, s, l) {
 }
 
 function blendHues(thoughtA, thoughtB) {
+  const strength = parseInt(document.querySelector('#blend-strength').value) / 100
   const diff = thoughtB.hue - thoughtA.hue
   const adjusted = ((diff + 540) % 360) - 180
-  const newHue = (thoughtA.hue + adjusted / 2 + 360) % 360
-  thoughtA.hue = newHue
-  thoughtB.hue = newHue
+  const newHueA = (thoughtA.hue + adjusted / 2 * strength + 360) % 360
+  const newHueB = (thoughtB.hue - adjusted / 2 * strength + 360) % 360
+  thoughtA.hue = newHueA
+  thoughtB.hue = newHueB
   const hslA = hexToHsl(thoughtA.color)
-  thoughtA.color = hslToHex(newHue, hslA.s, hslA.l)
+  thoughtA.color = hslToHex(newHueA, hslA.s, hslA.l)
   const hslB = hexToHsl(thoughtB.color)
-  thoughtB.color = hslToHex(newHue, hslB.s, hslB.l)
+  thoughtB.color = hslToHex(newHueB, hslB.s, hslB.l)
 }
 
 function enterBlendMode() {

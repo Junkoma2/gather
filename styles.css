@@ -306,10 +306,21 @@ button {
   font-size: 14px;
 }
 
+.size-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.size-preview {
+  flex-shrink: 0;
+  overflow: visible;
+}
+
 #size-input {
   -webkit-appearance: none;
   appearance: none;
-  width: 100%;
+  flex: 1;
   height: 6px;
   border-radius: 999px;
   background: linear-gradient(to right, #b8cfe0 0%, #4a7fa5 100%);

@@ -25,6 +25,7 @@ const customColorPreview = document.querySelector('#custom-color-preview')
 const blendModeButton = document.querySelector('#blend-mode')
 const menuButton = document.querySelector('#menu-button')
 const actionMenu = document.querySelector('.action-menu')
+const sizePreviewCircle = document.querySelector('#size-preview-circle')
 
 let thoughts = loadThoughts()
 let editingId = null
@@ -389,6 +390,13 @@ function selectSwatch(color) {
   }
 }
 
+function updateSizePreview() {
+  if (!sizePreviewCircle) return
+  const r = Number(sizeInput.value) / 2
+  sizePreviewCircle.setAttribute('r', r)
+  sizePreviewCircle.setAttribute('fill', colorInput.value)
+}
+
 function openCreateDialog() {
   editingId = null
   dialogTitle.textContent = '考えを追加'
@@ -397,6 +405,7 @@ function openCreateDialog() {
   colorInput.value = DEFAULT_COLOR
   sizeInput.value = DEFAULT_SIZE
   selectSwatch(DEFAULT_COLOR)
+  updateSizePreview()
   dialog.showModal()
   titleInput.focus()
 }
@@ -413,6 +422,7 @@ function openEditDialog(id) {
   colorInput.value = thought.color
   sizeInput.value = thought.radius
   selectSwatch(thought.color)
+  updateSizePreview()
   dialog.showModal()
   titleInput.focus()
 }
@@ -500,12 +510,16 @@ colorSwatches.forEach(swatch => {
   swatch.addEventListener('click', () => {
     colorInput.value = swatch.dataset.color
     selectSwatch(swatch.dataset.color)
+    updateSizePreview()
   })
 })
 
 colorInput.addEventListener('input', event => {
   selectSwatch(event.target.value)
+  updateSizePreview()
 })
+
+sizeInput.addEventListener('input', updateSizePreview)
 
 canvas.addEventListener('click', event => {
   const pointer = getPointerPosition(event)

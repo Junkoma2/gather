@@ -23,6 +23,7 @@ const importFile = document.querySelector('#import-file')
 const statusMessage = document.querySelector('#status-message')
 const customColorPreview = document.querySelector('#custom-color-preview')
 const blendModeButton = document.querySelector('#blend-mode')
+const blendStrengthInput = document.querySelector('#blend-strength')
 const menuButton = document.querySelector('#menu-button')
 const actionMenu = document.querySelector('.action-menu')
 
@@ -217,15 +218,17 @@ function hslToHex(h, s, l) {
 }
 
 function blendHues(thoughtA, thoughtB) {
+  const strength = blendStrengthInput ? parseInt(blendStrengthInput.value) / 100 : 0.3
   const diff = thoughtB.hue - thoughtA.hue
   const adjusted = ((diff + 540) % 360) - 180
-  const newHue = (thoughtA.hue + adjusted / 2 + 360) % 360
-  thoughtA.hue = newHue
-  thoughtB.hue = newHue
+  const newHueA = (thoughtA.hue + adjusted / 2 * strength + 360) % 360
+  const newHueB = (thoughtB.hue - adjusted / 2 * strength + 360) % 360
+  thoughtA.hue = newHueA
+  thoughtB.hue = newHueB
   const hslA = hexToHsl(thoughtA.color)
-  thoughtA.color = hslToHex(newHue, hslA.s, hslA.l)
+  thoughtA.color = hslToHex(newHueA, hslA.s, hslA.l)
   const hslB = hexToHsl(thoughtB.color)
-  thoughtB.color = hslToHex(newHue, hslB.s, hslB.l)
+  thoughtB.color = hslToHex(newHueB, hslB.s, hslB.l)
 }
 
 function enterBlendMode() {
@@ -233,6 +236,7 @@ function enterBlendMode() {
   isBlendMode = true
   selectedIds = []
   blendModeButton.classList.add('is-active')
+  if (blendStrengthInput) blendStrengthInput.hidden = false
   showStatus('2つの円をタップしてください')
 }
 
@@ -241,6 +245,7 @@ function exitBlendMode() {
   isBlendMode = false
   selectedIds = []
   blendModeButton.classList.remove('is-active')
+  if (blendStrengthInput) blendStrengthInput.hidden = true
 }
 
 function updatePhysics() {

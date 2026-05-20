@@ -235,6 +235,8 @@ function enterBlendMode() {
   isBlendMode = true
   selectedIds = []
   blendModeButton.classList.add('is-active')
+  blendModeButton.textContent = 'キャンセル'
+  blendModeButton.setAttribute('aria-label', 'つなぐモードをキャンセル')
   showStatus('2つの円をタップしてください')
 }
 
@@ -243,6 +245,8 @@ function exitBlendMode() {
   isBlendMode = false
   selectedIds = []
   blendModeButton.classList.remove('is-active')
+  blendModeButton.textContent = 'つなぐ'
+  blendModeButton.setAttribute('aria-label', '2つの円を選んで色を近づける')
 }
 
 function updatePhysics() {

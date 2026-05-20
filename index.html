@@ -66,7 +66,12 @@
 
         <div class="size-field">
           <span>大きさ</span>
-          <input id="size-input" type="range" min="18" max="64" value="32" />
+          <div class="size-slider-row">
+            <input id="size-input" type="range" min="18" max="64" value="32" />
+            <svg id="size-preview" class="size-preview" viewBox="0 0 64 64" width="64" height="64" aria-hidden="true">
+              <circle id="size-preview-circle" cx="32" cy="32" r="16" fill="#7fb7be" opacity="0.72" />
+            </svg>
+          </div>
           <div class="size-labels" aria-hidden="true">
             <span>小</span>
             <span>大</span>

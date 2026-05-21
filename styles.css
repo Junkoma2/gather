@@ -537,3 +537,97 @@ button {
     gap: 6px;
   }
 }
+
+/* --- 円アクションメニュー --- */
+.circle-action-menu {
+  position: fixed;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  min-width: 100px;
+  border: 1px solid rgba(23, 32, 51, 0.12);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(23, 32, 51, 0.14);
+  animation: popup-in 0.14s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.circle-action-menu button {
+  width: 100%;
+  padding: 11px 16px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #172033;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.circle-action-menu button:hover {
+  background: rgba(23, 32, 51, 0.06);
+}
+
+.circle-action-menu button.danger {
+  color: #9f2430;
+}
+
+/* --- ドラッグ重なり「つなぐ」ポップアップ --- */
+.blend-popup {
+  position: fixed;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 160px;
+  padding: 14px 16px;
+  border: 1px solid rgba(23, 32, 51, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px rgba(23, 32, 51, 0.14);
+  animation: popup-in 0.14s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.blend-popup-label {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.blend-popup-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.blend-popup-actions button {
+  flex: 1;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  font-size: 13px;
+  font: inherit;
+  cursor: pointer;
+  background: #172033;
+  color: #fff;
+}
+
+.blend-popup-actions button.secondary {
+  background: #eef1f5;
+  color: #334155;
+}
+
+@keyframes popup-in {
+  from { opacity: 0; transform: scale(0.92) translateY(-4px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .circle-action-menu,
+  .blend-popup {
+    animation: none;
+  }
+}

@@ -101,6 +101,21 @@
       </form>
     </dialog>
 
+    <!-- 円タップ時アクションメニュー -->
+    <div id="circle-action-menu" class="circle-action-menu" hidden role="menu" aria-label="円のアクション">
+      <button id="circle-edit" type="button" role="menuitem">編集</button>
+      <button id="circle-delete" type="button" role="menuitem" class="danger">削除</button>
+    </div>
+
+    <!-- ドラッグ重なり時「つなぐ」ポップアップ -->
+    <div id="blend-popup" class="blend-popup" hidden role="dialog" aria-label="色をつなぐ">
+      <span class="blend-popup-label">色を近づけますか？</span>
+      <div class="blend-popup-actions">
+        <button id="blend-popup-confirm" type="button">つなぐ</button>
+        <button id="blend-popup-cancel" type="button" class="secondary">キャンセル</button>
+      </div>
+    </div>
+
     <p id="status-message" class="status-message" role="status" aria-live="polite"></p>
     <script src="./script.js"></script>
   </body>

@@ -34,6 +34,12 @@ const blendStrengthInput = document.querySelector('#blend-strength')
 const menuButton = document.querySelector('#menu-button')
 const actionMenu = document.querySelector('.action-menu')
 const sizePreviewCircle = document.querySelector('#size-preview-circle')
+const circleActionMenu = document.querySelector('#circle-action-menu')
+const circleEditButton = document.querySelector('#circle-edit')
+const circleDeleteButton = document.querySelector('#circle-delete')
+const blendPopup = document.querySelector('#blend-popup')
+const blendPopupConfirm = document.querySelector('#blend-popup-confirm')
+const blendPopupCancel = document.querySelector('#blend-popup-cancel')
 let thoughts = loadThoughts()
 let editingId = null
 let width = 0
@@ -45,6 +51,9 @@ let draggingId = null
 let dragOffsetX = 0
 let dragOffsetY = 0
 let dragMoved = false
+let actionMenuTargetId = null
+let blendPopupIds = null
+let blendPopupTimer = null
 
 function loadThoughts() {
   try {
@@ -303,7 +312,6 @@ function updatePhysics() {
   }
 
   thoughts.forEach(thought => {
-  thoughts.forEach(thought => {
     if (thought.id === draggingId) return
     thought.vx *= 0.988
     thought.vy *= 0.988
@@ -544,7 +552,7 @@ form.addEventListener('submit', event => {
   closeDialog()
   if (isFirst && !localStorage.getItem(HINT_SHOWN_KEY)) {
     localStorage.setItem(HINT_SHOWN_KEY, '1')
-    showStatus('円をタップすると内容を確認・編集できます')
+    showStatus('円をタップして編集・削除できます')
   }
 })
 
@@ -568,10 +576,88 @@ form.addEventListener('submit', event => {
 sizeInput.addEventListener('input', updateSizePreview)
 
 
+// --- アクションメニュー ---
+function positionPopup(el, canvasX, canvasY) {
+  const rect = canvas.getBoundingClientRect()
+  const margin = 8
+  el.hidden = false
+  // 一時表示してサイズ計測
+  el.style.left = '0px'
+  el.style.top = '0px'
+  const w = el.offsetWidth
+  const h = el.offsetHeight
+  let left = rect.left + canvasX + 8
+  let top = rect.top + canvasY - h / 2
+  if (left + w > window.innerWidth - margin) left = rect.left + canvasX - w - 8
+  if (top < margin) top = margin
+  if (top + h > window.innerHeight - margin) top = window.innerHeight - margin - h
+  el.style.left = left + 'px'
+  el.style.top = top + 'px'
+}
+
+function openCircleActionMenu(id, x, y) {
+  closeBlendPopup()
+  actionMenuTargetId = id
+  positionPopup(circleActionMenu, x, y)
+}
+
+function closeCircleActionMenu() {
+  circleActionMenu.hidden = true
+  actionMenuTargetId = null
+}
+
+function openBlendPopup(idA, idB, x, y) {
+  closeCircleActionMenu()
+  blendPopupIds = [idA, idB]
+  positionPopup(blendPopup, x, y)
+  clearTimeout(blendPopupTimer)
+  blendPopupTimer = setTimeout(closeBlendPopup, 5000)
+}
+
+function closeBlendPopup() {
+  blendPopup.hidden = true
+  blendPopupIds = null
+  clearTimeout(blendPopupTimer)
+  blendPopupTimer = null
+}
+
+circleEditButton.addEventListener('click', () => {
+  const id = actionMenuTargetId
+  closeCircleActionMenu()
+  if (id) openEditDialog(id)
+})
+
+circleDeleteButton.addEventListener('click', () => {
+  const id = actionMenuTargetId
+  closeCircleActionMenu()
+  if (!id) return
+  const thought = thoughts.find(t => t.id === id)
+  if (!window.confirm(`「${thought?.title || '円'}」を削除しますか？`)) return
+  thoughts = thoughts.filter(t => t.id !== id)
+  saveThoughts()
+})
+
+blendPopupConfirm.addEventListener('click', () => {
+  if (!blendPopupIds) return
+  const [a, b] = blendPopupIds.map(id => thoughts.find(t => t.id === id))
+  if (a && b) {
+    blendHues(a, b)
+    saveThoughts()
+    showStatus('色を近づけました')
+  }
+  closeBlendPopup()
+})
+
+blendPopupCancel.addEventListener('click', closeBlendPopup)
+// --- アクションメニューここまで ---
+
 // --- ドラッグ移動 ---
 const DRAG_THRESHOLD = 6
 
 canvas.addEventListener('pointerdown', event => {
+  // タップ開始時にポップアップを閉じる
+  closeCircleActionMenu()
+  closeBlendPopup()
   const pointer = getPointerPosition(event)
   const found = [...thoughts].reverse().find(thought =>
     Math.hypot(pointer.x - thought.x, pointer.y - thought.y) <= thought.radius
@@ -620,13 +706,30 @@ canvas.addEventListener('pointerup', event => {
   if (!draggingId) return
   const moved = dragMoved
   const id = draggingId
+  const thought = thoughts.find(t => t.id === id)
   draggingId = null
   dragMoved = false
+
   if (!moved) {
-    openEditDialog(id)
-  } else {
-    saveThoughts()
+    // タップ: アクションメニューを表示
+    closeBlendPopup()
+    if (thought) openCircleActionMenu(id, thought.x, thought.y)
+    return
   }
+
+  // ドラッグ完了: 別の円との重なりを検出
+  if (thought) {
+    const overlapping = thoughts.find(other =>
+      other.id !== id &&
+      Math.hypot(other.x - thought.x, other.y - thought.y) < other.radius + thought.radius
+    )
+    if (overlapping) {
+      const midX = (thought.x + overlapping.x) / 2
+      const midY = (thought.y + overlapping.y) / 2
+      openBlendPopup(id, overlapping.id, midX, midY)
+    }
+  }
+  saveThoughts()
 })
 
 canvas.addEventListener('pointercancel', () => {
@@ -678,6 +781,8 @@ dialog.addEventListener('click', event => {
 
 document.addEventListener('keydown', event => {
   if (event.key === 'Escape') {
+    if (!circleActionMenu.hidden) { closeCircleActionMenu(); return }
+    if (!blendPopup.hidden) { closeBlendPopup(); return }
     if (!actionMenu.hidden) { closeMenu(); return }
     if (isBlendMode) exitBlendMode()
   }

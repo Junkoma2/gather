@@ -593,8 +593,13 @@ pullIndicator.className = 'pull-indicator'
 pullIndicator.setAttribute('aria-live', 'polite')
 document.body.prepend(pullIndicator)
 
+
+const PULL_ICON_DOWN = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 2v8M3.5 7l3.5 3 3.5-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+const PULL_ICON_CHECK = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7l3.5 3.5 5.5-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+
 function setPullIndicator(text, isComplete) {
-  pullIndicator.textContent = text
+  const icon = isComplete ? PULL_ICON_CHECK : PULL_ICON_DOWN
+  pullIndicator.innerHTML = icon + '<span>' + text + '</span>'
   pullIndicator.classList.toggle('complete', Boolean(isComplete))
 }
 

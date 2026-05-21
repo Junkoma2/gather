@@ -18,6 +18,7 @@ html,
 body {
   width: 100%;
   min-height: 100%;
+  background: #f4f5f7;
 }
 
 body {
@@ -406,6 +407,7 @@ button {
   transform: translateY(0);
 }
 
+
 .pull-indicator {
   position: fixed;
   top: 0;
@@ -414,20 +416,25 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   height: 0;
   overflow: hidden;
-  background: #eef1f5;
+  background: rgba(244, 245, 247, 0.96);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   color: #64748b;
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 500;
   opacity: 0;
-  transition: height 0.3s ease, opacity 0.3s ease;
+  transition: height 0.25s ease, opacity 0.25s ease;
   z-index: 100;
+  border-bottom: 1px solid rgba(23, 32, 51, 0.06);
 }
 
 .pull-indicator.complete {
-  background: #172033;
-  color: #fff;
+  color: #172033;
 }
+
 
 [hidden] {
   display: none !important;

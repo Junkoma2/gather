@@ -243,18 +243,15 @@ function hslToHex(h, s, l) {
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`
 }
 
+// thoughtA（能動側）の色を thoughtB（受動側）の色に近づける。thoughtB は変えない。
 function blendHues(thoughtA, thoughtB) {
   const strength = blendStrengthInput ? parseInt(blendStrengthInput.value) / 100 : 0.3
   const diff = thoughtB.hue - thoughtA.hue
   const adjusted = ((diff + 540) % 360) - 180
-  const newHueA = (thoughtA.hue + adjusted / 2 * strength + 360) % 360
-  const newHueB = (thoughtB.hue - adjusted / 2 * strength + 360) % 360
+  const newHueA = (thoughtA.hue + adjusted * strength + 360) % 360
   thoughtA.hue = newHueA
-  thoughtB.hue = newHueB
   const hslA = hexToHsl(thoughtA.color)
   thoughtA.color = hslToHex(newHueA, hslA.s, hslA.l)
-  const hslB = hexToHsl(thoughtB.color)
-  thoughtB.color = hslToHex(newHueB, hslB.s, hslB.l)
 }
 
 function enterBlendMode() {

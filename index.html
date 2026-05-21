@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
@@ -11,7 +11,10 @@
       <header class="app-header">
         <h1>gather</h1>
         <div class="header-actions">
-          <button id="blend-mode" class="icon-button text-button" type="button" aria-label="2つの円を選んで色を近づける">つなぐ</button>
+          <div class="blend-control">
+            <button id="blend-mode" class="icon-button text-button" type="button" aria-label="2つの円を選んで色を近づける">つなぐ</button>
+            <input id="blend-strength" type="range" min="1" max="100" value="30" aria-label="色の近づき度合い" hidden />
+          </div>
           <div class="menu-wrapper">
             <button id="menu-button" class="icon-button" type="button" aria-label="メニューを開く" aria-expanded="false" aria-haspopup="true">⋮</button>
             <div class="action-menu" role="menu" hidden>
@@ -66,7 +69,12 @@
 
         <div class="size-field">
           <span>大きさ</span>
-          <input id="size-input" type="range" min="18" max="64" value="32" />
+          <div class="size-slider-row">
+            <input id="size-input" type="range" min="18" max="64" value="32" />
+            <svg id="size-preview" class="size-preview" viewBox="0 0 64 64" width="64" height="64" aria-hidden="true">
+              <circle id="size-preview-circle" cx="32" cy="32" r="16" fill="#7fb7be" opacity="0.72" />
+            </svg>
+          </div>
           <div class="size-labels" aria-hidden="true">
             <span>小</span>
             <span>大</span>

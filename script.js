@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'gather-thoughts'
+﻿const STORAGE_KEY = 'gather-thoughts'
 const DEFAULT_COLOR = '#7fb7be'
 const DEFAULT_SIZE = 32
 const HINT_SHOWN_KEY = 'gather-hint-shown'
@@ -23,8 +23,10 @@ const importFile = document.querySelector('#import-file')
 const statusMessage = document.querySelector('#status-message')
 const customColorPreview = document.querySelector('#custom-color-preview')
 const blendModeButton = document.querySelector('#blend-mode')
+const blendStrengthInput = document.querySelector('#blend-strength')
 const menuButton = document.querySelector('#menu-button')
 const actionMenu = document.querySelector('.action-menu')
+const sizePreviewCircle = document.querySelector('#size-preview-circle')
 
 let thoughts = loadThoughts()
 let editingId = null
@@ -217,15 +219,17 @@ function hslToHex(h, s, l) {
 }
 
 function blendHues(thoughtA, thoughtB) {
+  const strength = blendStrengthInput ? parseInt(blendStrengthInput.value) / 100 : 0.3
   const diff = thoughtB.hue - thoughtA.hue
   const adjusted = ((diff + 540) % 360) - 180
-  const newHue = (thoughtA.hue + adjusted / 2 + 360) % 360
-  thoughtA.hue = newHue
-  thoughtB.hue = newHue
+  const newHueA = (thoughtA.hue + adjusted / 2 * strength + 360) % 360
+  const newHueB = (thoughtB.hue - adjusted / 2 * strength + 360) % 360
+  thoughtA.hue = newHueA
+  thoughtB.hue = newHueB
   const hslA = hexToHsl(thoughtA.color)
-  thoughtA.color = hslToHex(newHue, hslA.s, hslA.l)
+  thoughtA.color = hslToHex(newHueA, hslA.s, hslA.l)
   const hslB = hexToHsl(thoughtB.color)
-  thoughtB.color = hslToHex(newHue, hslB.s, hslB.l)
+  thoughtB.color = hslToHex(newHueB, hslB.s, hslB.l)
 }
 
 function enterBlendMode() {
@@ -233,6 +237,9 @@ function enterBlendMode() {
   isBlendMode = true
   selectedIds = []
   blendModeButton.classList.add('is-active')
+  if (blendStrengthInput) blendStrengthInput.hidden = false
+  blendModeButton.textContent = 'キャンセル'
+  blendModeButton.setAttribute('aria-label', 'つなぐモードをキャンセル')
   showStatus('2つの円をタップしてください')
 }
 
@@ -241,6 +248,9 @@ function exitBlendMode() {
   isBlendMode = false
   selectedIds = []
   blendModeButton.classList.remove('is-active')
+  if (blendStrengthInput) blendStrengthInput.hidden = true
+  blendModeButton.textContent = 'つなぐ'
+  blendModeButton.setAttribute('aria-label', '2つの円を選んで色を近づける')
 }
 
 function updatePhysics() {
@@ -383,6 +393,13 @@ function selectSwatch(color) {
   }
 }
 
+function updateSizePreview() {
+  if (!sizePreviewCircle) return
+  const r = Number(sizeInput.value) / 2
+  sizePreviewCircle.setAttribute('r', r)
+  sizePreviewCircle.setAttribute('fill', colorInput.value)
+}
+
 function openCreateDialog() {
   editingId = null
   dialogTitle.textContent = '考えを追加'
@@ -391,6 +408,7 @@ function openCreateDialog() {
   colorInput.value = DEFAULT_COLOR
   sizeInput.value = DEFAULT_SIZE
   selectSwatch(DEFAULT_COLOR)
+  updateSizePreview()
   dialog.showModal()
   titleInput.focus()
 }
@@ -407,6 +425,7 @@ function openEditDialog(id) {
   colorInput.value = thought.color
   sizeInput.value = thought.radius
   selectSwatch(thought.color)
+  updateSizePreview()
   dialog.showModal()
   titleInput.focus()
 }
@@ -494,12 +513,16 @@ colorSwatches.forEach(swatch => {
   swatch.addEventListener('click', () => {
     colorInput.value = swatch.dataset.color
     selectSwatch(swatch.dataset.color)
+    updateSizePreview()
   })
 })
 
 colorInput.addEventListener('input', event => {
   selectSwatch(event.target.value)
+  updateSizePreview()
 })
+
+sizeInput.addEventListener('input', updateSizePreview)
 
 canvas.addEventListener('click', event => {
   const pointer = getPointerPosition(event)

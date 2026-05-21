@@ -1,4 +1,4 @@
-﻿const STORAGE_KEY = 'gather-thoughts'
+const STORAGE_KEY = 'gather-thoughts'
 const DEFAULT_COLOR = '#7fb7be'
 const DEFAULT_SIZE = 32
 const HINT_SHOWN_KEY = 'gather-hint-shown'
@@ -11,9 +11,15 @@ const form = document.querySelector('#thought-form')
 const titleInput = document.querySelector('#title-input')
 const noteInput = document.querySelector('#note-input')
 const colorInput = document.querySelector('#color-input')
+const colorR = document.querySelector('#color-r')
+const colorG = document.querySelector('#color-g')
+const colorB = document.querySelector('#color-b')
+const colorRValue = document.querySelector('#color-r-value')
+const colorGValue = document.querySelector('#color-g-value')
+const colorBValue = document.querySelector('#color-b-value')
+const colorPreviewSwatch = document.querySelector('#color-preview-swatch')
 const sizeInput = document.querySelector('#size-input')
 const deleteThoughtButton = document.querySelector('#delete-thought')
-const colorSwatches = [...document.querySelectorAll('.color-swatch')]
 const canvas = document.querySelector('#gather-canvas')
 const ctx = canvas.getContext('2d')
 const checkUpdateButton = document.querySelector('#check-update')
@@ -21,13 +27,11 @@ const exportButton = document.querySelector('#export-data')
 const importButton = document.querySelector('#import-data')
 const importFile = document.querySelector('#import-file')
 const statusMessage = document.querySelector('#status-message')
-const customColorPreview = document.querySelector('#custom-color-preview')
 const blendModeButton = document.querySelector('#blend-mode')
 const blendStrengthInput = document.querySelector('#blend-strength')
 const menuButton = document.querySelector('#menu-button')
 const actionMenu = document.querySelector('.action-menu')
 const sizePreviewCircle = document.querySelector('#size-preview-circle')
-
 let thoughts = loadThoughts()
 let editingId = null
 let width = 0
@@ -381,17 +385,42 @@ function getPointerPosition(event) {
   }
 }
 
-function selectSwatch(color) {
-  const lc = color.toLowerCase()
-  colorSwatches.forEach(swatch => {
-    swatch.classList.toggle('is-selected', swatch.dataset.color === lc)
-  })
-  const isPreset = colorSwatches.some(s => s.dataset.color === lc)
-  if (customColorPreview) {
-    customColorPreview.style.setProperty('--custom-color', color)
-    customColorPreview.style.opacity = isPreset ? '0.4' : '1'
+
+function hexToRgb(hex) {
+  const v = hex.replace('#', '')
+  return {
+    r: parseInt(v.slice(0, 2), 16),
+    g: parseInt(v.slice(2, 4), 16),
+    b: parseInt(v.slice(4, 6), 16),
   }
 }
+
+function rgbToHex(r, g, b) {
+  return '#' + [r, g, b].map(v => Math.round(v).toString(16).padStart(2, '0')).join('')
+}
+
+function setColorFromHex(hex) {
+  const { r, g, b } = hexToRgb(hex)
+  colorR.value = r
+  colorG.value = g
+  colorB.value = b
+  if (colorRValue) colorRValue.value = r
+  if (colorGValue) colorGValue.value = g
+  if (colorBValue) colorBValue.value = b
+  colorInput.value = hex
+  updateRgbSliderGradients()
+  if (colorPreviewSwatch) colorPreviewSwatch.style.background = hex
+}
+
+function updateRgbSliderGradients() {
+  const r = Number(colorR.value)
+  const g = Number(colorG.value)
+  const b = Number(colorB.value)
+  colorR.style.setProperty('--slider-bg', `linear-gradient(to right, rgb(0,${g},${b}), rgb(255,${g},${b}))`)
+  colorG.style.setProperty('--slider-bg', `linear-gradient(to right, rgb(${r},0,${b}), rgb(${r},255,${b}))`)
+  colorB.style.setProperty('--slider-bg', `linear-gradient(to right, rgb(${r},${g},0), rgb(${r},${g},255))`)
+}
+
 
 function updateSizePreview() {
   if (!sizePreviewCircle) return
@@ -407,7 +436,7 @@ function openCreateDialog() {
   form.reset()
   colorInput.value = DEFAULT_COLOR
   sizeInput.value = DEFAULT_SIZE
-  selectSwatch(DEFAULT_COLOR)
+  setColorFromHex(DEFAULT_COLOR)
   updateSizePreview()
   dialog.showModal()
   titleInput.focus()
@@ -424,7 +453,7 @@ function openEditDialog(id) {
   noteInput.value = thought.note
   colorInput.value = thought.color
   sizeInput.value = thought.radius
-  selectSwatch(thought.color)
+  setColorFromHex(thought.color)
   updateSizePreview()
   dialog.showModal()
   titleInput.focus()
@@ -509,17 +538,21 @@ form.addEventListener('submit', event => {
   }
 })
 
-colorSwatches.forEach(swatch => {
-  swatch.addEventListener('click', () => {
-    colorInput.value = swatch.dataset.color
-    selectSwatch(swatch.dataset.color)
+
+;[colorR, colorG, colorB].forEach(slider => {
+  slider.addEventListener('input', () => {
+    const r = Number(colorR.value)
+    const g = Number(colorG.value)
+    const b = Number(colorB.value)
+    const hex = rgbToHex(r, g, b)
+    colorInput.value = hex
+    if (colorRValue) colorRValue.value = r
+    if (colorGValue) colorGValue.value = g
+    if (colorBValue) colorBValue.value = b
+    if (colorPreviewSwatch) colorPreviewSwatch.style.background = hex
+    updateRgbSliderGradients()
     updateSizePreview()
   })
-})
-
-colorInput.addEventListener('input', event => {
-  selectSwatch(event.target.value)
-  updateSizePreview()
 })
 
 sizeInput.addEventListener('input', updateSizePreview)
@@ -675,7 +708,7 @@ if ('serviceWorker' in navigator) {
 
 normalizeThoughts()
 resizeCanvas()
-selectSwatch(DEFAULT_COLOR)
+setColorFromHex(DEFAULT_COLOR)
 animationFrame = requestAnimationFrame(tick)
 
 window.addEventListener('beforeunload', () => {

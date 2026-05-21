@@ -52,20 +52,32 @@
           <textarea id="note-input" maxlength="240" placeholder="少しだけ残す"></textarea>
         </label>
 
+
         <fieldset class="color-fieldset">
           <legend>色</legend>
-          <div class="color-swatches" role="radiogroup" aria-label="色">
-            <button type="button" class="color-swatch" data-color="#7fb7be" aria-label="青緑"></button>
-            <button type="button" class="color-swatch" data-color="#f2b880" aria-label="琥珀"></button>
-            <button type="button" class="color-swatch" data-color="#d88c9a" aria-label="ローズ"></button>
-            <button type="button" class="color-swatch" data-color="#9ab87a" aria-label="若草"></button>
-            <button type="button" class="color-swatch" data-color="#b8a1d9" aria-label="藤"></button>
+          <div class="rgb-sliders">
+            <label class="rgb-label">
+              <span>R</span>
+              <input id="color-r" type="range" min="0" max="255" value="127" class="rgb-slider rgb-r" aria-label="赤（Red）" />
+              <output id="color-r-value" class="rgb-value">127</output>
+            </label>
+            <label class="rgb-label">
+              <span>G</span>
+              <input id="color-g" type="range" min="0" max="255" value="183" class="rgb-slider rgb-g" aria-label="緑（Green）" />
+              <output id="color-g-value" class="rgb-value">183</output>
+            </label>
+            <label class="rgb-label">
+              <span>B</span>
+              <input id="color-b" type="range" min="0" max="255" value="190" class="rgb-slider rgb-b" aria-label="青（Blue）" />
+              <output id="color-b-value" class="rgb-value">190</output>
+            </label>
           </div>
-          <label class="custom-color-label" aria-label="自由な色を選ぶ" title="その他の色">
-            <span class="custom-color-swatch" id="custom-color-preview"></span>
-            <input id="color-input" type="color" value="#7fb7be" />
-          </label>
+          <div class="color-preview-row">
+            <span class="color-preview-swatch" id="color-preview-swatch"></span>
+          </div>
+          <input id="color-input" type="color" value="#7fb7be" hidden />
         </fieldset>
+
 
         <div class="size-field">
           <span>大きさ</span>

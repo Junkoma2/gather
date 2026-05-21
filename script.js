@@ -20,6 +20,8 @@ const colorBValue = document.querySelector('#color-b-value')
 const colorPreviewSwatch = document.querySelector('#color-preview-swatch')
 const sizeInput = document.querySelector('#size-input')
 const deleteThoughtButton = document.querySelector('#delete-thought')
+const duplicateThoughtButton = document.querySelector('#duplicate-thought')
+const colorSwatches = [...document.querySelectorAll('.color-swatch')]
 const canvas = document.querySelector('#gather-canvas')
 const ctx = canvas.getContext('2d')
 const checkUpdateButton = document.querySelector('#check-update')
@@ -39,6 +41,10 @@ let height = 0
 let animationFrame = null
 let isBlendMode = false
 let selectedIds = []
+let draggingId = null
+let dragOffsetX = 0
+let dragOffsetY = 0
+let dragMoved = false
 
 function loadThoughts() {
   try {
@@ -297,6 +303,8 @@ function updatePhysics() {
   }
 
   thoughts.forEach(thought => {
+  thoughts.forEach(thought => {
+    if (thought.id === draggingId) return
     thought.vx *= 0.988
     thought.vy *= 0.988
     thought.x += thought.vx
@@ -433,6 +441,7 @@ function openCreateDialog() {
   editingId = null
   dialogTitle.textContent = '考えを追加'
   deleteThoughtButton.hidden = true
+  if (duplicateThoughtButton) duplicateThoughtButton.hidden = true
   form.reset()
   colorInput.value = DEFAULT_COLOR
   sizeInput.value = DEFAULT_SIZE
@@ -449,6 +458,7 @@ function openEditDialog(id) {
   editingId = thought.id
   dialogTitle.textContent = '考えを編集'
   deleteThoughtButton.hidden = false
+  if (duplicateThoughtButton) duplicateThoughtButton.hidden = false
   titleInput.value = thought.title
   noteInput.value = thought.note
   colorInput.value = thought.color
@@ -557,14 +567,17 @@ form.addEventListener('submit', event => {
 
 sizeInput.addEventListener('input', updateSizePreview)
 
-canvas.addEventListener('click', event => {
-  const pointer = getPointerPosition(event)
-  const found = [...thoughts].reverse().find(thought => {
-    return Math.hypot(pointer.x - thought.x, pointer.y - thought.y) <= thought.radius
-  })
 
+// --- ドラッグ移動 ---
+const DRAG_THRESHOLD = 6
+
+canvas.addEventListener('pointerdown', event => {
+  const pointer = getPointerPosition(event)
+  const found = [...thoughts].reverse().find(thought =>
+    Math.hypot(pointer.x - thought.x, pointer.y - thought.y) <= thought.radius
+  )
+  if (!found) return
   if (isBlendMode) {
-    if (!found) { exitBlendMode(); return }
     if (selectedIds.includes(found.id)) {
       showStatus('同じ円は選べません')
       return
@@ -582,9 +595,46 @@ canvas.addEventListener('click', event => {
     }
     return
   }
-
-  if (found) openEditDialog(found.id)
+  draggingId = found.id
+  dragOffsetX = pointer.x - found.x
+  dragOffsetY = pointer.y - found.y
+  dragMoved = false
+  canvas.setPointerCapture(event.pointerId)
 })
+
+canvas.addEventListener('pointermove', event => {
+  if (!draggingId) return
+  const pointer = getPointerPosition(event)
+  const thought = thoughts.find(t => t.id === draggingId)
+  if (!thought) return
+  const dx = pointer.x - dragOffsetX - thought.x
+  const dy = pointer.y - dragOffsetY - thought.y
+  if (Math.hypot(dx, dy) > DRAG_THRESHOLD) dragMoved = true
+  thought.x = pointer.x - dragOffsetX
+  thought.y = pointer.y - dragOffsetY
+  thought.vx = 0
+  thought.vy = 0
+})
+
+canvas.addEventListener('pointerup', event => {
+  if (!draggingId) return
+  const moved = dragMoved
+  const id = draggingId
+  draggingId = null
+  dragMoved = false
+  if (!moved) {
+    openEditDialog(id)
+  } else {
+    saveThoughts()
+  }
+})
+
+canvas.addEventListener('pointercancel', () => {
+  draggingId = null
+  dragMoved = false
+})
+// --- ドラッグ移動ここまで ---
+
 
 deleteThoughtButton.addEventListener('click', () => {
   if (!editingId) return
@@ -594,6 +644,26 @@ deleteThoughtButton.addEventListener('click', () => {
   saveThoughts()
   closeDialog()
 })
+
+if (duplicateThoughtButton) {
+  duplicateThoughtButton.addEventListener('click', () => {
+    if (!editingId) return
+    const original = thoughts.find(t => t.id === editingId)
+    if (!original) return
+    const copy = {
+      ...original,
+      id: crypto.randomUUID(),
+      x: original.x + original.radius + 8,
+      y: original.y + original.radius + 8,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+    }
+    thoughts.push(copy)
+    saveThoughts()
+    closeDialog()
+    showStatus('複製しました')
+  })
+}
 
 dialog.addEventListener('click', event => {
   const rect = dialog.getBoundingClientRect()

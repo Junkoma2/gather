@@ -55,10 +55,11 @@ let actionMenuTargetId = null
 let blendPopupIds = null
 let blendPopupTimer = null
 
-// 空白タップ引力パルス
+// 空白タッチ引力
 let attractionX = null
 let attractionY = null
 let attractionStrength = 0
+let isAttracting = false
 
 function loadThoughts() {
   try {
@@ -314,21 +315,23 @@ function updatePhysics() {
     a.vy += centerDy * 0.000015
   }
 
-  // 空白タップ引力パルス
-  if (attractionStrength > 0 && attractionX !== null && attractionY !== null) {
-    thoughts.forEach(thought => {
-      if (thought.id === draggingId) return
-      const dx = attractionX - thought.x
-      const dy = attractionY - thought.y
-      const distance = Math.max(Math.hypot(dx, dy), 1)
-      const nx = dx / distance
-      const ny = dy / distance
-      const pull = attractionStrength * 0.08 * (1 + Math.min(distance / 100, 2))
-      thought.vx += nx * pull
-      thought.vy += ny * pull
-    })
-    attractionStrength *= 0.82
-    if (attractionStrength < 0.01) {
+  // 空白タッチ引力（指を離すまで持続）
+  if (attractionX !== null && attractionY !== null) {
+    if (isAttracting) {
+      attractionStrength = 1.0
+    }
+    if (attractionStrength > 0.01) {
+      thoughts.forEach(thought => {
+        if (thought.id === draggingId) return
+        const dx = attractionX - thought.x
+        const dy = attractionY - thought.y
+        const distance = Math.max(Math.hypot(dx, dy), 1)
+        const pull = attractionStrength * 0.08 * (1 + Math.min(distance / 100, 2))
+        thought.vx += (dx / distance) * pull
+        thought.vy += (dy / distance) * pull
+      })
+      if (!isAttracting) attractionStrength *= 0.82
+    } else {
       attractionStrength = 0
       attractionX = null
       attractionY = null
@@ -687,10 +690,12 @@ canvas.addEventListener('pointerdown', event => {
     Math.hypot(pointer.x - thought.x, pointer.y - thought.y) <= thought.radius
   )
   if (!found) {
-    // 空白タップ: 引力パルスを発動
+    // 空白タッチ: 指を押している間ずっと引き寄せる
     attractionX = pointer.x
     attractionY = pointer.y
     attractionStrength = 1.0
+    isAttracting = true
+    canvas.setPointerCapture(event.pointerId)
     return
   }
   if (isBlendMode) {
@@ -719,6 +724,12 @@ canvas.addEventListener('pointerdown', event => {
 })
 
 canvas.addEventListener('pointermove', event => {
+  if (isAttracting) {
+    const pointer = getPointerPosition(event)
+    attractionX = pointer.x
+    attractionY = pointer.y
+    return
+  }
   if (!draggingId) return
   const pointer = getPointerPosition(event)
   const thought = thoughts.find(t => t.id === draggingId)
@@ -733,6 +744,10 @@ canvas.addEventListener('pointermove', event => {
 })
 
 canvas.addEventListener('pointerup', event => {
+  if (isAttracting) {
+    isAttracting = false
+    return
+  }
   if (!draggingId) return
   const moved = dragMoved
   const id = draggingId
@@ -763,6 +778,7 @@ canvas.addEventListener('pointerup', event => {
 })
 
 canvas.addEventListener('pointercancel', () => {
+  isAttracting = false
   draggingId = null
   dragMoved = false
 })

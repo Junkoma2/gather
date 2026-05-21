@@ -696,19 +696,42 @@ pullIndicator.className = 'pull-indicator'
 pullIndicator.setAttribute('aria-live', 'polite')
 document.body.prepend(pullIndicator)
 
+const PULL_SVG_ARROW = '<svg class="pull-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>'
+const PULL_SVG_SPIN = '<svg class="pull-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>'
+const PULL_SVG_CHECK = '<svg class="pull-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>'
 
-const PULL_ICON_DOWN = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 2v8M3.5 7l3.5 3 3.5-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'
-const PULL_ICON_CHECK = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7l3.5 3.5 5.5-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'
-
-function setPullIndicator(text, isComplete) {
-  const icon = isComplete ? PULL_ICON_CHECK : PULL_ICON_DOWN
-  pullIndicator.innerHTML = icon + '<span>' + text + '</span>'
-  pullIndicator.classList.toggle('complete', Boolean(isComplete))
-}
-
-function updatePullIndicatorHeight(y) {
+function setPullDragging(y) {
+  pullIndicator.classList.remove('refreshing', 'returning', 'complete')
   pullIndicator.style.height = y > 0 ? (y + 'px') : ''
   pullIndicator.style.opacity = y > 0 ? String(Math.min(y / PULL_THRESHOLD, 1)) : ''
+  const isReady = y >= PULL_THRESHOLD
+  const arrowSvg = PULL_SVG_ARROW.replace('class="pull-arrow"', 'class="pull-arrow' + (isReady ? ' flip' : '') + '"')
+  pullIndicator.innerHTML = arrowSvg + '<span class="pull-label">' + (isReady ? '離して更新' : '下に引っ張って更新') + '</span>'
+}
+
+function setPullRefreshing() {
+  pullIndicator.classList.remove('returning', 'complete')
+  pullIndicator.style.height = ''
+  pullIndicator.style.opacity = ''
+  pullIndicator.classList.add('refreshing')
+  pullIndicator.innerHTML = PULL_SVG_SPIN + '<span class="pull-label">更新中...</span>'
+}
+
+function setPullComplete() {
+  pullIndicator.innerHTML = PULL_SVG_CHECK + '<span class="pull-label">更新しました</span>'
+  pullIndicator.classList.add('complete')
+}
+
+function setPullReturning() {
+  pullIndicator.classList.add('returning')
+  pullIndicator.classList.remove('refreshing')
+}
+
+function setPullHidden() {
+  pullIndicator.classList.remove('refreshing', 'returning', 'complete')
+  pullIndicator.style.height = ''
+  pullIndicator.style.opacity = ''
+  pullIndicator.innerHTML = ''
 }
 
 function hitTestCircle(clientX, clientY) {
@@ -744,8 +767,7 @@ canvas.addEventListener('touchmove', event => {
   pullY = visual <= PULL_THRESHOLD
     ? visual
     : Math.min(PULL_THRESHOLD + (visual - PULL_THRESHOLD) * 0.3, PULL_THRESHOLD + 50)
-  updatePullIndicatorHeight(pullY)
-  setPullIndicator(pullY >= PULL_THRESHOLD ? '放して更新' : '引っ張って更新', false)
+  setPullDragging(pullY)
 }, { passive: true })
 
 canvas.addEventListener('touchend', async () => {
@@ -755,18 +777,21 @@ canvas.addEventListener('touchend', async () => {
   }
   pullStartY = null
   if (pullY < PULL_THRESHOLD) {
-    updatePullIndicatorHeight(0)
+    setPullReturning()
+    requestAnimationFrame(() => {
+      setPullDragging(0)
+      setTimeout(setPullHidden, 400)
+    })
     pullY = 0
     return
   }
   pullY = 0
-  setPullIndicator('更新中…', false)
-  updatePullIndicatorHeight(PULL_THRESHOLD)
+  setPullRefreshing()
   await checkForUpdate()
-  setPullIndicator('完了', true)
+  setPullComplete()
   setTimeout(() => {
-    updatePullIndicatorHeight(0)
-    setTimeout(() => setPullIndicator('', false), 400)
+    setPullReturning()
+    setTimeout(setPullHidden, 700)
   }, 700)
 })
 // --- 下スワイプ更新ここまで ---

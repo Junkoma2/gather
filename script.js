@@ -308,8 +308,8 @@ function updatePhysics() {
 
     const centerDx = width / 2 - a.x
     const centerDy = height / 2 - a.y
-    a.vx += centerDx * 0.000015
-    a.vy += centerDy * 0.000015
+    a.vx += centerDx * 0.00008
+    a.vy += centerDy * 0.00008
   }
 
   // 空白タッチ引力（指を離すまで持続）

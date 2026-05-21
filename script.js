@@ -769,14 +769,9 @@ if (duplicateThoughtButton) {
 }
 
 dialog.addEventListener('click', event => {
-  const rect = dialog.getBoundingClientRect()
-  const isInDialog =
-    rect.top <= event.clientY &&
-    event.clientY <= rect.bottom &&
-    rect.left <= event.clientX &&
-    event.clientX <= rect.right
-
-  if (!isInDialog) closeDialog()
+  // フォーム領域外（バックドロップ相当）のクリックでダイアログを閉じる
+  // 座標計算はボトムシートで不安定なため event.target で判定する
+  if (!form.contains(event.target)) closeDialog()
 })
 
 document.addEventListener('keydown', event => {
@@ -892,6 +887,8 @@ canvas.addEventListener('touchend', async () => {
   }
   pullY = 0
   setPullRefreshing()
+  // rAFで1フレーム待ってからcheckForUpdateを実行し、スピナーの描画を確実に反映させる
+  await new Promise(resolve => requestAnimationFrame(resolve))
   await checkForUpdate()
   setPullComplete()
   setTimeout(() => {

@@ -44,6 +44,18 @@ button {
   cursor: pointer;
 }
 
+/* キーボード操作時のフォーカスリング (#36) */
+:focus-visible {
+  outline: 2px solid #172033;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* タッチ操作時はフォーカスリングを非表示 */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
 .app-shell {
   position: relative;
   min-height: 100svh;
@@ -122,6 +134,10 @@ button {
   color: #172033;
   line-height: 1;
   backdrop-filter: blur(12px);
+}
+
+.icon-button:focus-visible {
+  border-radius: 999px;
 }
 
 .add-button {

@@ -29,6 +29,7 @@ const exportButton = document.querySelector('#export-data')
 const importButton = document.querySelector('#import-data')
 const importFile = document.querySelector('#import-file')
 const statusMessage = document.querySelector('#status-message')
+const emptyStateMessage = document.querySelector('#empty-state-message')
 const blendModeButton = document.querySelector('#blend-mode')
 const blendStrengthInput = document.querySelector('#blend-strength')
 const menuButton = document.querySelector('#menu-button')
@@ -69,6 +70,14 @@ function saveThoughts() {
   } catch {
     showStatus('保存に失敗しました')
   }
+  updateEmptyStateA11y()
+}
+
+function updateEmptyStateA11y() {
+  if (!emptyStateMessage) return
+  emptyStateMessage.textContent = thoughts.length === 0
+    ? '考えがまだありません。+ ボタンで追加できます。'
+    : ''
 }
 
 function showStatus(message) {
@@ -906,6 +915,7 @@ if ('serviceWorker' in navigator) {
 normalizeThoughts()
 resizeCanvas()
 setColorFromHex(DEFAULT_COLOR)
+updateEmptyStateA11y()
 animationFrame = requestAnimationFrame(tick)
 
 window.addEventListener('beforeunload', () => {

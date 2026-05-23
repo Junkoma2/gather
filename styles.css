@@ -54,8 +54,8 @@ button {
   position: absolute;
   z-index: 2;
   top: calc(18px + env(safe-area-inset-top, 0px));
-  left: 18px;
-  right: 18px;
+  left: calc(18px + env(safe-area-inset-left, 0px));
+  right: calc(18px + env(safe-area-inset-right, 0px));
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -66,6 +66,7 @@ button {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
   pointer-events: auto;
 }
 
@@ -93,6 +94,7 @@ button {
   margin: 0;
   font-size: 24px;
   letter-spacing: 0;
+  min-width: 0;
 }
 
 .icon-button {
@@ -536,8 +538,8 @@ button {
 @media (max-width: 640px) {
   .app-header {
     top: calc(14px + env(safe-area-inset-top, 0px));
-    left: 14px;
-    right: 14px;
+    left: calc(14px + env(safe-area-inset-left, 0px));
+    right: calc(14px + env(safe-area-inset-right, 0px));
   }
 
   .thought-dialog {

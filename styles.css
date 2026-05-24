@@ -110,9 +110,23 @@ button {
   background: #172033;
 }
 
+.blend-strength-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px 10px;
+}
+
+.blend-strength-label {
+  font-size: 12px;
+  color: #64748b;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 #blend-strength {
-  width: calc(100% - 28px);
-  margin: 0 14px 10px;
+  flex: 1;
+  min-width: 0;
   height: 4px;
   accent-color: #172033;
   cursor: pointer;

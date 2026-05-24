@@ -56,6 +56,12 @@ let actionMenuTargetId = null
 let blendPopupIds = null
 let blendPopupTimer = null
 
+// 空白タッチ引力
+let attractionX = null
+let attractionY = null
+let attractionStrength = 0
+let isAttracting = false
+
 function loadThoughts() {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? []
@@ -246,18 +252,15 @@ function hslToHex(h, s, l) {
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`
 }
 
+// thoughtA（能動側）の色を thoughtB（受動側）の色に近づける。thoughtB は変えない。
 function blendHues(thoughtA, thoughtB) {
   const strength = blendStrengthInput ? parseInt(blendStrengthInput.value) / 100 : 0.3
   const diff = thoughtB.hue - thoughtA.hue
   const adjusted = ((diff + 540) % 360) - 180
-  const newHueA = (thoughtA.hue + adjusted / 2 * strength + 360) % 360
-  const newHueB = (thoughtB.hue - adjusted / 2 * strength + 360) % 360
+  const newHueA = (thoughtA.hue + adjusted * strength + 360) % 360
   thoughtA.hue = newHueA
-  thoughtB.hue = newHueB
   const hslA = hexToHsl(thoughtA.color)
   thoughtA.color = hslToHex(newHueA, hslA.s, hslA.l)
-  const hslB = hexToHsl(thoughtB.color)
-  thoughtB.color = hslToHex(newHueB, hslB.s, hslB.l)
 }
 
 function enterBlendMode() {
@@ -265,7 +268,6 @@ function enterBlendMode() {
   isBlendMode = true
   selectedIds = []
   blendModeButton.classList.add('is-active')
-  if (blendStrengthInput) blendStrengthInput.hidden = false
   blendModeButton.textContent = 'キャンセル'
   blendModeButton.setAttribute('aria-label', 'つなぐモードをキャンセル')
   showStatus('2つの円をタップしてください')
@@ -276,7 +278,6 @@ function exitBlendMode() {
   isBlendMode = false
   selectedIds = []
   blendModeButton.classList.remove('is-active')
-  if (blendStrengthInput) blendStrengthInput.hidden = true
   blendModeButton.textContent = 'つなぐ'
   blendModeButton.setAttribute('aria-label', '2つの円を選んで色を近づける')
 }
@@ -316,8 +317,31 @@ function updatePhysics() {
 
     const centerDx = width / 2 - a.x
     const centerDy = height / 2 - a.y
-    a.vx += centerDx * 0.000015
-    a.vy += centerDy * 0.000015
+    a.vx += centerDx * 0.00008
+    a.vy += centerDy * 0.00008
+  }
+
+  // 空白タッチ引力（指を離すまで持続）
+  if (attractionX !== null && attractionY !== null) {
+    if (isAttracting) {
+      attractionStrength = 1.0
+    }
+    if (attractionStrength > 0.01) {
+      thoughts.forEach(thought => {
+        if (thought.id === draggingId) return
+        const dx = attractionX - thought.x
+        const dy = attractionY - thought.y
+        const distance = Math.max(Math.hypot(dx, dy), 1)
+        const pull = attractionStrength * 0.08 * (1 + Math.min(distance / 100, 2))
+        thought.vx += (dx / distance) * pull
+        thought.vy += (dy / distance) * pull
+      })
+      if (!isAttracting) attractionStrength *= 0.82
+    } else {
+      attractionStrength = 0
+      attractionX = null
+      attractionY = null
+    }
   }
 
   thoughts.forEach(thought => {
@@ -671,7 +695,15 @@ canvas.addEventListener('pointerdown', event => {
   const found = [...thoughts].reverse().find(thought =>
     Math.hypot(pointer.x - thought.x, pointer.y - thought.y) <= thought.radius
   )
-  if (!found) return
+  if (!found) {
+    // 空白タッチ: 指を押している間ずっと引き寄せる
+    attractionX = pointer.x
+    attractionY = pointer.y
+    attractionStrength = 1.0
+    isAttracting = true
+    canvas.setPointerCapture(event.pointerId)
+    return
+  }
   if (isBlendMode) {
     if (selectedIds.includes(found.id)) {
       showStatus('同じ円は選べません')
@@ -698,6 +730,12 @@ canvas.addEventListener('pointerdown', event => {
 })
 
 canvas.addEventListener('pointermove', event => {
+  if (isAttracting) {
+    const pointer = getPointerPosition(event)
+    attractionX = pointer.x
+    attractionY = pointer.y
+    return
+  }
   if (!draggingId) return
   const pointer = getPointerPosition(event)
   const thought = thoughts.find(t => t.id === draggingId)
@@ -712,6 +750,10 @@ canvas.addEventListener('pointermove', event => {
 })
 
 canvas.addEventListener('pointerup', event => {
+  if (isAttracting) {
+    isAttracting = false
+    return
+  }
   if (!draggingId) return
   const moved = dragMoved
   const id = draggingId
@@ -742,6 +784,7 @@ canvas.addEventListener('pointerup', event => {
 })
 
 canvas.addEventListener('pointercancel', () => {
+  isAttracting = false
   draggingId = null
   dragMoved = false
 })
@@ -794,118 +837,6 @@ document.addEventListener('keydown', event => {
 
 window.addEventListener('resize', resizeCanvas)
 
-// --- 下スワイプ更新 ---
-const PULL_THRESHOLD = 80
-let pullStartY = null
-let pullY = 0
-let pullBlockedByCircle = false
-
-const pullIndicator = document.createElement('div')
-pullIndicator.className = 'pull-indicator'
-pullIndicator.setAttribute('aria-live', 'polite')
-document.body.prepend(pullIndicator)
-
-const PULL_SVG_ARROW = '<svg class="pull-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>'
-const PULL_SVG_SPIN = '<svg class="pull-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>'
-const PULL_SVG_CHECK = '<svg class="pull-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>'
-
-function setPullDragging(y) {
-  pullIndicator.classList.remove('refreshing', 'returning', 'complete')
-  pullIndicator.style.height = y > 0 ? (y + 'px') : ''
-  pullIndicator.style.opacity = y > 0 ? String(Math.min(y / PULL_THRESHOLD, 1)) : ''
-  const isReady = y >= PULL_THRESHOLD
-  const arrowSvg = PULL_SVG_ARROW.replace('class="pull-arrow"', 'class="pull-arrow' + (isReady ? ' flip' : '') + '"')
-  pullIndicator.innerHTML = arrowSvg + '<span class="pull-label">' + (isReady ? '離して更新' : '下に引っ張って更新') + '</span>'
-}
-
-function setPullRefreshing() {
-  pullIndicator.classList.remove('returning', 'complete')
-  pullIndicator.style.height = ''
-  pullIndicator.style.opacity = ''
-  pullIndicator.classList.add('refreshing')
-  pullIndicator.innerHTML = PULL_SVG_SPIN + '<span class="pull-label">更新中...</span>'
-}
-
-function setPullComplete() {
-  pullIndicator.innerHTML = PULL_SVG_CHECK + '<span class="pull-label">更新しました</span>'
-  pullIndicator.classList.add('complete')
-}
-
-function setPullReturning() {
-  pullIndicator.classList.add('returning')
-  pullIndicator.classList.remove('refreshing')
-}
-
-function setPullHidden() {
-  pullIndicator.classList.remove('refreshing', 'returning', 'complete')
-  pullIndicator.style.height = ''
-  pullIndicator.style.opacity = ''
-  pullIndicator.innerHTML = ''
-}
-
-function hitTestCircle(clientX, clientY) {
-  const rect = canvas.getBoundingClientRect()
-  const x = clientX - rect.left
-  const y = clientY - rect.top
-  return thoughts.some(thought => Math.hypot(x - thought.x, y - thought.y) <= thought.radius)
-}
-
-canvas.addEventListener('touchstart', event => {
-  if (window.scrollY > 0) {
-    pullBlockedByCircle = true
-    return
-  }
-  const touch = event.touches[0]
-  if (hitTestCircle(touch.clientX, touch.clientY)) {
-    pullBlockedByCircle = true
-    pullStartY = null
-    return
-  }
-  pullBlockedByCircle = false
-  pullStartY = touch.clientY
-}, { passive: true })
-
-canvas.addEventListener('touchmove', event => {
-  if (pullStartY === null || pullBlockedByCircle) return
-  const dy = event.touches[0].clientY - pullStartY
-  if (dy <= 0) {
-    pullStartY = null
-    return
-  }
-  const visual = dy * 0.4
-  pullY = visual <= PULL_THRESHOLD
-    ? visual
-    : Math.min(PULL_THRESHOLD + (visual - PULL_THRESHOLD) * 0.3, PULL_THRESHOLD + 50)
-  setPullDragging(pullY)
-}, { passive: true })
-
-canvas.addEventListener('touchend', async () => {
-  if (pullStartY === null || pullBlockedByCircle) {
-    pullBlockedByCircle = false
-    return
-  }
-  pullStartY = null
-  if (pullY < PULL_THRESHOLD) {
-    setPullReturning()
-    requestAnimationFrame(() => {
-      setPullDragging(0)
-      setTimeout(setPullHidden, 400)
-    })
-    pullY = 0
-    return
-  }
-  pullY = 0
-  setPullRefreshing()
-  // rAFで1フレーム待ってからcheckForUpdateを実行し、スピナーの描画を確実に反映させる
-  await new Promise(resolve => requestAnimationFrame(resolve))
-  await checkForUpdate()
-  setPullComplete()
-  setTimeout(() => {
-    setPullReturning()
-    setTimeout(setPullHidden, 700)
-  }, 700)
-})
-// --- 下スワイプ更新ここまで ---
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js')

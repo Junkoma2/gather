@@ -38,7 +38,11 @@
 
       <section class="canvas-panel" aria-label="思考の場">
         <canvas id="gather-canvas"></canvas>
-        <p id="empty-state-message" class="visually-hidden" aria-live="polite">考えがまだありません。+ ボタンで追加できます。</p>
+        <div id="empty-state" class="empty-state">
+          <p>考えを置いて、近さから関係を眺めます。</p>
+          <button id="empty-state-add" type="button">考えを追加</button>
+        </div>
+        <p id="empty-state-message" class="visually-hidden" aria-live="polite">考えがまだありません。考えを追加できます。</p>
       </section>
     </main>
 

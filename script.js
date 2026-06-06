@@ -29,6 +29,8 @@ const exportButton = document.querySelector('#export-data')
 const importButton = document.querySelector('#import-data')
 const importFile = document.querySelector('#import-file')
 const statusMessage = document.querySelector('#status-message')
+const emptyState = document.querySelector('#empty-state')
+const emptyStateAddButton = document.querySelector('#empty-state-add')
 const emptyStateMessage = document.querySelector('#empty-state-message')
 const blendModeButton = document.querySelector('#blend-mode')
 const blendStrengthInput = document.querySelector('#blend-strength')
@@ -80,10 +82,13 @@ function saveThoughts() {
 }
 
 function updateEmptyStateA11y() {
-  if (!emptyStateMessage) return
-  emptyStateMessage.textContent = thoughts.length === 0
-    ? '考えがまだありません。+ ボタンで追加できます。'
-    : ''
+  const isEmpty = thoughts.length === 0
+  if (emptyState) emptyState.hidden = !isEmpty
+  if (emptyStateMessage) {
+    emptyStateMessage.textContent = isEmpty
+      ? '考えがまだありません。考えを追加できます。'
+      : ''
+  }
 }
 
 function showStatus(message) {
@@ -362,19 +367,10 @@ function updatePhysics() {
   })
 }
 
-function drawEmptyState() {
-  ctx.fillStyle = 'rgba(23, 32, 51, 0.28)'
-  ctx.font = '15px sans-serif'
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  ctx.fillText('+ ボタンで考えを追加できます', width / 2, height / 2)
-}
-
 function draw() {
   ctx.clearRect(0, 0, width, height)
 
   if (thoughts.length === 0) {
-    drawEmptyState()
     return
   }
 
@@ -572,6 +568,7 @@ blendModeButton.addEventListener('click', () => {
 })
 
 addThoughtButton.addEventListener('click', openCreateDialog)
+emptyStateAddButton.addEventListener('click', openCreateDialog)
 closeDialogButton.addEventListener('click', closeDialog)
 exportButton.addEventListener('click', () => { closeMenu(); exportThoughts() })
 importButton.addEventListener('click', () => { closeMenu(); importFile.click() })

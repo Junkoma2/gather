@@ -1,5 +1,5 @@
-const CACHE_NAME = 'gather-v1'
-const ASSETS = ['./', './index.html', './styles.css', './script.js']
+const CACHE_NAME = 'gather-20260607-01'
+const ASSETS = ['./', './index.html', './styles.css', './version.js', './script.js']
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)))

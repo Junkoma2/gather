@@ -367,6 +367,35 @@ function updatePhysics() {
   })
 }
 
+
+// 最大幅に収まるようにテキストを折り返して描画する
+function fillWrappedText(ctx, text, x, y, maxWidth, lineHeight) {
+  const words = text.split('')
+  // 単語が空の場合は何もしない（空白文字区切りではなく文字単位）
+  // まず全体が収まるか試す
+  const measured = ctx.measureText(text)
+  if (measured.width <= maxWidth) {
+    ctx.fillText(text, x, y)
+    return
+  }
+  // 収まらない場合は文字単位で折り返す
+  const chars = [...text]
+  const lines = []
+  let current = ''
+  for (const ch of chars) {
+    const test = current + ch
+    if (ctx.measureText(test).width > maxWidth && current) {
+      lines.push(current)
+      current = ch
+    } else {
+      current = test
+    }
+  }
+  if (current) lines.push(current)
+  const totalH = lines.length * lineHeight
+  const startY = y - (totalH - lineHeight) / 2
+  lines.forEach((line, i) => ctx.fillText(line, x, startY + i * lineHeight))
+}
 function draw() {
   ctx.clearRect(0, 0, width, height)
 
@@ -398,11 +427,12 @@ function draw() {
       ctx.setLineDash([])
     }
 
+    const fontSize = Math.max(11, Math.min(16, thought.radius / 2.3))
     ctx.fillStyle = '#172033'
-    ctx.font = `${Math.max(11, Math.min(16, thought.radius / 2.3))}px sans-serif`
+    ctx.font = `${fontSize}px sans-serif`
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
-    ctx.fillText(thought.title, thought.x, thought.y)
+    fillWrappedText(ctx, thought.title, thought.x, thought.y, thought.radius * 1.6, fontSize * 1.3)
   })
 }
 

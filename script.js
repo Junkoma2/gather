@@ -890,6 +890,11 @@ document.addEventListener('keydown', event => {
 })
 
 window.addEventListener('resize', resizeCanvas)
+// iOS Safari では orientationchange のタイミングが resize と異なるため個別に登録
+window.addEventListener('orientationchange', () => {
+  // orientationchange 直後はまだレイアウトが確定していないため遅延実行
+  setTimeout(resizeCanvas, 100)
+})
 
 
 if ('serviceWorker' in navigator) {

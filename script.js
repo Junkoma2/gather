@@ -32,6 +32,7 @@ const statusMessage = document.querySelector('#status-message')
 const emptyState = document.querySelector('#empty-state')
 const emptyStateAddButton = document.querySelector('#empty-state-add')
 const emptyStateMessage = document.querySelector('#empty-state-message')
+const thoughtsA11y = document.querySelector('#thoughts-a11y')
 const blendModeButton = document.querySelector('#blend-mode')
 const blendStrengthInput = document.querySelector('#blend-strength')
 const menuButton = document.querySelector('#menu-button')
@@ -88,6 +89,12 @@ function updateEmptyStateA11y() {
     emptyStateMessage.textContent = isEmpty
       ? '考えがまだありません。考えを追加できます。'
       : ''
+  }
+  if (thoughtsA11y) {
+    // canvas の円情報をスクリーンリーダー向けに提供
+    thoughtsA11y.textContent = isEmpty
+      ? ''
+      : `${thoughts.length}個の考えがあります。` + thoughts.map(t => t.title).join('、')
   }
 }
 

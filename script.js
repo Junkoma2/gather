@@ -43,6 +43,10 @@ const circleDeleteButton = document.querySelector('#circle-delete')
 const blendPopup = document.querySelector('#blend-popup')
 const blendPopupConfirm = document.querySelector('#blend-popup-confirm')
 const blendPopupCancel = document.querySelector('#blend-popup-cancel')
+const confirmDialogEl = document.querySelector('#confirm-dialog')
+const confirmDialogMessage = document.querySelector('#confirm-dialog-message')
+const confirmDialogOk = document.querySelector('#confirm-dialog-ok')
+const confirmDialogCancel = document.querySelector('#confirm-dialog-cancel')
 let thoughts = loadThoughts()
 let editingId = null
 let width = 0
@@ -99,6 +103,19 @@ function showStatus(message) {
   }, 2600)
 }
 
+function showConfirm(message, onConfirm) {
+  confirmDialogMessage.textContent = message
+  confirmDialogEl.showModal()
+  // { once: true } でリスナーを自動解除し、複数回呼ばれても累積しない
+  confirmDialogOk.addEventListener('click', () => {
+    confirmDialogEl.close()
+    onConfirm()
+  }, { once: true })
+  confirmDialogCancel.addEventListener('click', () => {
+    confirmDialogEl.close()
+  }, { once: true })
+}
+
 function exportThoughts() {
   const payload = {
     version: 1,
@@ -140,11 +157,12 @@ function importThoughts(file) {
       if (!Array.isArray(payload.thoughts) || !payload.thoughts.every(isValidThought)) {
         throw new Error('invalid')
       }
-      if (!window.confirm('現在の考えを置き換えてインポートしますか？')) return
-      thoughts = payload.thoughts
-      normalizeThoughts()
-      saveThoughts()
-      showStatus('インポートしました')
+      showConfirm('現在の考えを置き換えてインポートしますか？', () => {
+        thoughts = payload.thoughts
+        normalizeThoughts()
+        saveThoughts()
+        showStatus('インポートしました')
+      })
     } catch {
       showStatus('JSON を読み込めませんでした')
     } finally {
@@ -692,9 +710,10 @@ circleDeleteButton.addEventListener('click', () => {
   closeCircleActionMenu()
   if (!id) return
   const thought = thoughts.find(t => t.id === id)
-  if (!window.confirm(`「${thought?.title || '円'}」を削除しますか？`)) return
-  thoughts = thoughts.filter(t => t.id !== id)
-  saveThoughts()
+  showConfirm(`「${thought?.title || '円'}」を削除しますか？`, () => {
+    thoughts = thoughts.filter(t => t.id !== id)
+    saveThoughts()
+  })
 })
 
 blendPopupConfirm.addEventListener('click', () => {
@@ -821,10 +840,11 @@ canvas.addEventListener('pointercancel', () => {
 deleteThoughtButton.addEventListener('click', () => {
   if (!editingId) return
   const thought = thoughts.find(t => t.id === editingId)
-  if (!window.confirm(`「${thought?.title || '円'}」を削除しますか？`)) return
-  thoughts = thoughts.filter(thought => thought.id !== editingId)
-  saveThoughts()
-  closeDialog()
+  showConfirm(`「${thought?.title || '円'}」を削除しますか？`, () => {
+    thoughts = thoughts.filter(thought => thought.id !== editingId)
+    saveThoughts()
+    closeDialog()
+  })
 })
 
 if (duplicateThoughtButton) {

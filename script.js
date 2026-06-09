@@ -5,6 +5,7 @@ const HINT_SHOWN_KEY = 'gather-hint-shown'
 
 const addThoughtButton = document.querySelector('#add-thought')
 const dialog = document.querySelector('#thought-dialog')
+const importConfirmDialog = document.querySelector('#import-confirm-dialog')
 const dialogTitle = document.querySelector('#dialog-title')
 const closeDialogButton = document.querySelector('#close-dialog')
 const form = document.querySelector('#thought-form')
@@ -140,11 +141,17 @@ function importThoughts(file) {
       if (!Array.isArray(payload.thoughts) || !payload.thoughts.every(isValidThought)) {
         throw new Error('invalid')
       }
-      if (!window.confirm('現在の考えを置き換えてインポートしますか？')) return
-      thoughts = payload.thoughts
-      normalizeThoughts()
-      saveThoughts()
-      showStatus('インポートしました')
+      importConfirmDialog.showModal()
+      importConfirmDialog.querySelector('#import-confirm-ok').addEventListener('click', () => {
+        importConfirmDialog.close()
+        thoughts = payload.thoughts
+        normalizeThoughts()
+        saveThoughts()
+        showStatus('インポートしました')
+      }, { once: true })
+      importConfirmDialog.querySelector('#import-confirm-cancel').addEventListener('click', () => {
+        importConfirmDialog.close()
+      }, { once: true })
     } catch {
       showStatus('JSON を読み込めませんでした')
     } finally {

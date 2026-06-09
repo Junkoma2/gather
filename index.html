@@ -43,13 +43,14 @@
       </header>
 
       <section class="canvas-panel" aria-label="思考の場">
-        <canvas id="gather-canvas"></canvas>
+        <canvas id="gather-canvas" role="img" aria-label="思考の配置図"></canvas>
         <div id="empty-state" class="empty-state">
           <p>考えを置いて、近さから関係を眺めます。</p>
           <button id="empty-state-add" type="button">考えを追加</button>
         </div>
         <p id="empty-state-message" class="visually-hidden" aria-live="polite">考えがまだありません。考えを追加できます。</p>
         <div id="thoughts-a11y" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
+        <ul id="thought-list-sr" class="visually-hidden" aria-label="登録済みの考え一覧" aria-live="polite"></ul>
       </section>
     </main>
 

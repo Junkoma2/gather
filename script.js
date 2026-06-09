@@ -33,6 +33,7 @@ const emptyState = document.querySelector('#empty-state')
 const emptyStateAddButton = document.querySelector('#empty-state-add')
 const emptyStateMessage = document.querySelector('#empty-state-message')
 const thoughtsA11y = document.querySelector('#thoughts-a11y')
+const thoughtListSr = document.querySelector('#thought-list-sr')
 const blendModeButton = document.querySelector('#blend-mode')
 const blendStrengthInput = document.querySelector('#blend-strength')
 const menuButton = document.querySelector('#menu-button')
@@ -99,6 +100,11 @@ function updateEmptyStateA11y() {
     thoughtsA11y.textContent = isEmpty
       ? ''
       : `${thoughts.length}個の考えがあります。` + thoughts.map(t => t.title).join('、')
+  }
+  if (thoughtListSr) {
+    thoughtListSr.innerHTML = thoughts.map(t =>
+      `<li>${t.title || '（タイトルなし）'}${t.note ? `：${t.note}` : ''}</li>`
+    ).join('')
   }
 }
 

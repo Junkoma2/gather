@@ -1,4 +1,6 @@
-const CACHE_NAME = 'gather-20260607-01'
+importScripts('./version.js')
+
+const CACHE_NAME = 'gather-' + (self.APP_VERSION || 'dev')
 const ASSETS = ['./', './index.html', './styles.css', './version.js', './script.js']
 
 self.addEventListener('install', event => {

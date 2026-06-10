@@ -51,6 +51,7 @@ const confirmDialogOk = document.querySelector('#confirm-dialog-ok')
 const confirmDialogCancel = document.querySelector('#confirm-dialog-cancel')
 let thoughts = loadThoughts()
 let editingId = null
+let hasUnsavedEdits = false
 let width = 0
 let height = 0
 let animationFrame = null
@@ -555,6 +556,7 @@ function openEditDialog(id) {
   if (!thought) return
 
   editingId = thought.id
+  hasUnsavedEdits = false
   dialogTitle.textContent = '考えを編集'
   deleteThoughtButton.hidden = false
   if (duplicateThoughtButton) duplicateThoughtButton.hidden = false
@@ -570,6 +572,7 @@ function openEditDialog(id) {
 
 function closeDialog() {
   editingId = null
+  hasUnsavedEdits = false
   dialog.close()
 }
 
@@ -636,6 +639,10 @@ exportButton.addEventListener('click', () => { closeMenu(); exportThoughts() })
 importButton.addEventListener('click', () => { closeMenu(); importFile.click() })
 importFile.addEventListener('change', event => importThoughts(event.target.files?.[0]))
 checkUpdateButton.addEventListener('click', () => { closeMenu(); checkForUpdate() })
+
+form.addEventListener('input', () => {
+  if (editingId) hasUnsavedEdits = true
+})
 
 form.addEventListener('submit', event => {
   event.preventDefault()
@@ -924,6 +931,10 @@ setColorFromHex(DEFAULT_COLOR)
 updateEmptyStateA11y()
 animationFrame = requestAnimationFrame(tick)
 
-window.addEventListener('beforeunload', () => {
+window.addEventListener('beforeunload', event => {
   if (animationFrame) cancelAnimationFrame(animationFrame)
+  if (editingId && hasUnsavedEdits) {
+    event.preventDefault()
+    event.returnValue = ''
+  }
 })

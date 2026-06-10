@@ -60,6 +60,7 @@ let draggingId = null
 let dragOffsetX = 0
 let dragOffsetY = 0
 let dragMoved = false
+let activePointerId = null
 let actionMenuTargetId = null
 let blendPopupIds = null
 let blendPopupTimer = null
@@ -747,6 +748,10 @@ blendPopupCancel.addEventListener('click', closeBlendPopup)
 const DRAG_THRESHOLD = 6
 
 canvas.addEventListener('pointerdown', event => {
+  // 既に別の指でドラッグ・引力操作中なら、追加の指の入力は無視する（座標ずれ防止）
+  if (activePointerId !== null && activePointerId !== event.pointerId) return
+  activePointerId = event.pointerId
+
   // タップ開始時にポップアップを閉じる
   closeCircleActionMenu()
   closeBlendPopup()
@@ -789,6 +794,7 @@ canvas.addEventListener('pointerdown', event => {
 })
 
 canvas.addEventListener('pointermove', event => {
+  if (event.pointerId !== activePointerId) return
   if (isAttracting) {
     const pointer = getPointerPosition(event)
     attractionX = pointer.x
@@ -809,6 +815,8 @@ canvas.addEventListener('pointermove', event => {
 })
 
 canvas.addEventListener('pointerup', event => {
+  if (event.pointerId !== activePointerId) return
+  activePointerId = null
   if (isAttracting) {
     isAttracting = false
     return
@@ -842,7 +850,9 @@ canvas.addEventListener('pointerup', event => {
   saveThoughts()
 })
 
-canvas.addEventListener('pointercancel', () => {
+canvas.addEventListener('pointercancel', event => {
+  if (event.pointerId !== activePointerId) return
+  activePointerId = null
   isAttracting = false
   draggingId = null
   dragMoved = false

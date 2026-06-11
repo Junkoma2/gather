@@ -104,9 +104,13 @@ function updateEmptyStateA11y() {
       : `${thoughts.length}個の考えがあります。` + thoughts.map(t => t.title).join('、')
   }
   if (thoughtListSr) {
-    thoughtListSr.innerHTML = thoughts.map(t =>
-      `<li>${t.title || '（タイトルなし）'}${t.note ? `：${t.note}` : ''}</li>`
-    ).join('')
+    // ユーザーデータをHTMLとして解釈させない（XSS対策でDOM APIを使う）
+    thoughtListSr.textContent = ''
+    thoughts.forEach(t => {
+      const li = document.createElement('li')
+      li.textContent = (t.title || '（タイトルなし）') + (t.note ? `：${t.note}` : '')
+      thoughtListSr.append(li)
+    })
   }
 }
 

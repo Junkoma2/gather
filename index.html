@@ -23,7 +23,8 @@
             <button id="menu-button" class="icon-button" type="button" aria-label="メニューを開く" aria-expanded="false" aria-haspopup="true">⋮</button>
             <div class="action-menu" role="menu" hidden>
               <div class="blend-control">
-                <button id="blend-mode" class="action-menu-item" type="button" role="menuitem" aria-label="2つの円を選んで色を近づける">つなぐ</button>
+                <button id="blend-mode" class="action-menu-item" type="button" role="menuitem" aria-label="2つの円を選んで色を近づける" aria-describedby="blend-help">つなぐ</button>
+                <p id="blend-help" class="blend-help">2つの円を順番に選ぶと、最初の円の色が次の円へ近づきます。</p>
                 <div class="blend-strength-row">
                   <span class="blend-strength-label">強さ</span>
                   <input id="blend-strength" type="range" min="1" max="100" value="30" aria-label="近づける強さ" />

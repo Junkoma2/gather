@@ -1,7 +1,7 @@
 importScripts('./version.js')
 
 const CACHE_NAME = 'gather-' + (self.APP_VERSION || 'dev')
-const ASSETS = ['./', './index.html', './styles.css', './version.js', './script.js']
+const ASSETS = ['./', './index.html', './styles.css', './version.js', './dataIntegrity.js', './script.js']
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)))

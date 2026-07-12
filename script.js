@@ -613,10 +613,14 @@ function openMenu() {
   if (firstItem) firstItem.focus()
 }
 
-function closeMenu() {
+// restoreFocus: メニューを開いた状態から明示的に閉じる操作（トグル・Escape・項目選択）でのみ
+// menuButton へフォーカスを戻す。画面外側クリックでの間接的な close では
+// クリック先が持つフォーカスを奪わないようにする。
+function closeMenu({ restoreFocus = true } = {}) {
+  if (actionMenu.hidden) return
   actionMenu.hidden = true
   menuButton.setAttribute('aria-expanded', 'false')
-  menuButton.focus()
+  if (restoreFocus) menuButton.focus()
 }
 
 menuButton.addEventListener('click', event => {
@@ -625,7 +629,7 @@ menuButton.addEventListener('click', event => {
   else closeMenu()
 })
 
-document.addEventListener('click', () => closeMenu())
+document.addEventListener('click', () => closeMenu({ restoreFocus: false }))
 
 actionMenu.addEventListener('click', event => {
   event.stopPropagation()

@@ -463,7 +463,7 @@ function draw() {
 
     const fontSize = Math.max(11, Math.min(16, thought.radius / 2.3))
     ctx.fillStyle = '#172033'
-    ctx.font = `${fontSize}px sans-serif`
+    ctx.font = `${fontSize}px "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", system-ui, sans-serif`
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
     fillWrappedText(ctx, thought.title, thought.x, thought.y, thought.radius * 1.6, fontSize * 1.3)

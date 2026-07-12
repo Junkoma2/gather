@@ -73,11 +73,19 @@ let attractionStrength = 0
 let isAttracting = false
 
 function loadThoughts() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? []
-  } catch {
-    return []
+  const { thoughts: loaded, wasCorrupted } = GatherDataIntegrity.parseStoredThoughts(
+    localStorage.getItem(STORAGE_KEY),
+  )
+  if (wasCorrupted) {
+    showStatus('保存データの一部を読み込めなかったため初期化しました')
+    try {
+      // 壊れたデータのまま残ると再読み込みのたびに通知が出るため、救済後の状態で上書きする
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(loaded))
+    } catch {
+      // 保存に失敗しても起動は継続する
+    }
   }
+  return loaded
 }
 
 function saveThoughts() {
@@ -151,17 +159,6 @@ function exportThoughts() {
   showStatus('エクスポートしました')
 }
 
-function isValidThought(value) {
-  return (
-    value &&
-    typeof value.id === 'string' &&
-    typeof value.title === 'string' &&
-    typeof value.note === 'string' &&
-    typeof value.color === 'string' &&
-    typeof value.radius === 'number'
-  )
-}
-
 function importThoughts(file) {
   if (!file) return
   if (file.size > 2 * 1024 * 1024) {
@@ -173,7 +170,7 @@ function importThoughts(file) {
   reader.onload = event => {
     try {
       const payload = JSON.parse(event.target.result)
-      if (!Array.isArray(payload.thoughts) || !payload.thoughts.every(isValidThought)) {
+      if (!Array.isArray(payload.thoughts) || !payload.thoughts.every(GatherDataIntegrity.isValidThought)) {
         throw new Error('invalid')
       }
       showConfirm('現在の考えを置き換えてインポートしますか？', () => {
@@ -480,6 +477,10 @@ function tick() {
 }
 
 function normalizeThoughts() {
+  if (!Array.isArray(thoughts)) {
+    thoughts = []
+    return
+  }
   thoughts = thoughts.map(thought => ({
     ...thought,
     color: thought.color ?? DEFAULT_COLOR,

@@ -1,7 +1,7 @@
 const STORAGE_KEY = 'gather-thoughts'
 const DEFAULT_COLOR = '#7fb7be'
 const DEFAULT_SIZE = 32
-const HINT_SHOWN_KEY = 'gather-hint-shown'
+const HINT_STAGES_KEY = 'gather-hint-stages-shown'
 
 const addThoughtButton = document.querySelector('#add-thought')
 const dialog = document.querySelector('#thought-dialog')
@@ -19,6 +19,7 @@ const colorGValue = document.querySelector('#color-g-value')
 const colorBValue = document.querySelector('#color-b-value')
 const colorPreviewSwatch = document.querySelector('#color-preview-swatch')
 const sizeInput = document.querySelector('#size-input')
+const appearanceDetails = document.querySelector('#appearance-details')
 const deleteThoughtButton = document.querySelector('#delete-thought')
 const duplicateThoughtButton = document.querySelector('#duplicate-thought')
 const colorSwatches = [...document.querySelectorAll('.color-swatch')]
@@ -128,6 +129,41 @@ function showStatus(message) {
   showStatus.timer = window.setTimeout(() => {
     statusMessage.textContent = ''
   }, 2600)
+}
+
+// 初回のみ触りながら理解できるよう、最初の数回だけ短い補助を出す。
+// 各段階は一度出したら再表示しない（説明だらけにしないため）。
+function getShownHintStages() {
+  try {
+    const stages = JSON.parse(localStorage.getItem(HINT_STAGES_KEY))
+    return Array.isArray(stages) ? stages : []
+  } catch {
+    return []
+  }
+}
+
+function markHintStageShown(stage) {
+  const stages = getShownHintStages()
+  if (stages.includes(stage)) return
+  stages.push(stage)
+  try {
+    localStorage.setItem(HINT_STAGES_KEY, JSON.stringify(stages))
+  } catch {
+    // 保存できなくても表示自体は継続する
+  }
+}
+
+function maybeShowOnboardingHint(countAfterAdd) {
+  const stages = getShownHintStages()
+  if (countAfterAdd === 1 && !stages.includes('first-add')) {
+    markHintStageShown('first-add')
+    showStatus('ドラッグで動かせます。タップで編集・削除できます')
+    return
+  }
+  if (countAfterAdd === 2 && !stages.includes('second-add')) {
+    markHintStageShown('second-add')
+    showStatus('近づけるとメニューの「つなぐ」で色も近づけられます')
+  }
 }
 
 function showConfirm(message, onConfirm) {
@@ -552,6 +588,8 @@ function openCreateDialog() {
   sizeInput.value = DEFAULT_SIZE
   setColorFromHex(DEFAULT_COLOR)
   updateSizePreview()
+  // 初回は名前だけで置けるよう、色・大きさの調整は閉じた状態で始める
+  if (appearanceDetails) appearanceDetails.open = false
   dialog.showModal()
   titleInput.focus()
 }
@@ -571,6 +609,8 @@ function openEditDialog(id) {
   sizeInput.value = thought.radius
   setColorFromHex(thought.color)
   updateSizePreview()
+  // 編集時はすでに決めた見た目を見に来ているはずなので開いておく
+  if (appearanceDetails) appearanceDetails.open = true
   dialog.showModal()
   titleInput.focus()
 }
@@ -655,13 +695,10 @@ form.addEventListener('input', () => {
 
 form.addEventListener('submit', event => {
   event.preventDefault()
-  const isFirst = thoughts.length === 0
+  const isCreate = !editingId
   updateThoughtFromForm()
   closeDialog()
-  if (isFirst && !localStorage.getItem(HINT_SHOWN_KEY)) {
-    localStorage.setItem(HINT_SHOWN_KEY, '1')
-    showStatus('円をタップして編集・削除できます')
-  }
+  if (isCreate) maybeShowOnboardingHint(thoughts.length)
 })
 
 

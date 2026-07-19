@@ -2,7 +2,7 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#f4f5f7" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -75,45 +75,49 @@
         </label>
 
 
-        <fieldset class="color-fieldset">
-          <legend>色</legend>
-          <div class="rgb-sliders">
-            <label class="rgb-label">
-              <span>R</span>
-              <input id="color-r" type="range" min="0" max="255" value="127" class="rgb-slider rgb-r" aria-label="赤（Red）" />
-              <output id="color-r-value" class="rgb-value">127</output>
-            </label>
-            <label class="rgb-label">
-              <span>G</span>
-              <input id="color-g" type="range" min="0" max="255" value="183" class="rgb-slider rgb-g" aria-label="緑（Green）" />
-              <output id="color-g-value" class="rgb-value">183</output>
-            </label>
-            <label class="rgb-label">
-              <span>B</span>
-              <input id="color-b" type="range" min="0" max="255" value="190" class="rgb-slider rgb-b" aria-label="青（Blue）" />
-              <output id="color-b-value" class="rgb-value">190</output>
-            </label>
-          </div>
-          <div class="color-preview-row">
-            <span class="color-preview-swatch" id="color-preview-swatch"></span>
-          </div>
-          <input id="color-input" type="color" value="#7fb7be" hidden />
-        </fieldset>
+        <details id="appearance-details" class="appearance-details">
+          <summary class="appearance-summary">色・大きさを調整<span class="optional-tag">任意</span></summary>
+          <div class="appearance-details-body">
+            <fieldset class="color-fieldset">
+              <legend>色</legend>
+              <div class="rgb-sliders">
+                <label class="rgb-label">
+                  <span>R</span>
+                  <input id="color-r" type="range" min="0" max="255" value="127" class="rgb-slider rgb-r" aria-label="赤（Red）" />
+                  <output id="color-r-value" class="rgb-value">127</output>
+                </label>
+                <label class="rgb-label">
+                  <span>G</span>
+                  <input id="color-g" type="range" min="0" max="255" value="183" class="rgb-slider rgb-g" aria-label="緑（Green）" />
+                  <output id="color-g-value" class="rgb-value">183</output>
+                </label>
+                <label class="rgb-label">
+                  <span>B</span>
+                  <input id="color-b" type="range" min="0" max="255" value="190" class="rgb-slider rgb-b" aria-label="青（Blue）" />
+                  <output id="color-b-value" class="rgb-value">190</output>
+                </label>
+              </div>
+              <div class="color-preview-row">
+                <span class="color-preview-swatch" id="color-preview-swatch"></span>
+              </div>
+              <input id="color-input" type="color" value="#7fb7be" hidden />
+            </fieldset>
 
-
-        <div class="size-field">
-          <span>大きさ</span>
-          <div class="size-slider-row">
-            <input id="size-input" type="range" min="18" max="64" value="32" />
-            <svg id="size-preview" class="size-preview" viewBox="0 0 64 64" width="64" height="64" aria-hidden="true">
-              <circle id="size-preview-circle" cx="32" cy="32" r="16" fill="#7fb7be" opacity="0.72" />
-            </svg>
+            <div class="size-field">
+              <span>大きさ</span>
+              <div class="size-slider-row">
+                <input id="size-input" type="range" min="18" max="64" value="32" />
+                <svg id="size-preview" class="size-preview" viewBox="0 0 64 64" width="64" height="64" aria-hidden="true">
+                  <circle id="size-preview-circle" cx="32" cy="32" r="16" fill="#7fb7be" opacity="0.72" />
+                </svg>
+              </div>
+              <div class="size-labels" aria-hidden="true">
+                <span>小</span>
+                <span>大</span>
+              </div>
+            </div>
           </div>
-          <div class="size-labels" aria-hidden="true">
-            <span>小</span>
-            <span>大</span>
-          </div>
-        </div>
+        </details>
 
         <div class="dialog-actions">
           <button id="delete-thought" class="secondary-button danger-button" type="button">削除</button>
@@ -161,6 +165,7 @@
 
     <p id="status-message" class="status-message" role="status" aria-live="polite"></p>
     <script src="./version.js"></script>
+    <script src="./dataIntegrity.js"></script>
     <script src="./script.js"></script>
   </body>
 </html>

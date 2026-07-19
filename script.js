@@ -1,7 +1,7 @@
 const STORAGE_KEY = 'gather-thoughts'
 const DEFAULT_COLOR = '#7fb7be'
 const DEFAULT_SIZE = 32
-const HINT_SHOWN_KEY = 'gather-hint-shown'
+const HINT_STAGES_KEY = 'gather-hint-stages-shown'
 
 const addThoughtButton = document.querySelector('#add-thought')
 const dialog = document.querySelector('#thought-dialog')
@@ -19,6 +19,7 @@ const colorGValue = document.querySelector('#color-g-value')
 const colorBValue = document.querySelector('#color-b-value')
 const colorPreviewSwatch = document.querySelector('#color-preview-swatch')
 const sizeInput = document.querySelector('#size-input')
+const appearanceDetails = document.querySelector('#appearance-details')
 const deleteThoughtButton = document.querySelector('#delete-thought')
 const duplicateThoughtButton = document.querySelector('#duplicate-thought')
 const colorSwatches = [...document.querySelectorAll('.color-swatch')]
@@ -55,6 +56,7 @@ const confirmDialogOk = document.querySelector('#confirm-dialog-ok')
 const confirmDialogCancel = document.querySelector('#confirm-dialog-cancel')
 let thoughts = loadThoughts()
 let editingId = null
+let hasUnsavedEdits = false
 let width = 0
 let height = 0
 let animationFrame = null
@@ -76,11 +78,19 @@ let attractionStrength = 0
 let isAttracting = false
 
 function loadThoughts() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? []
-  } catch {
-    return []
+  const { thoughts: loaded, wasCorrupted } = GatherDataIntegrity.parseStoredThoughts(
+    localStorage.getItem(STORAGE_KEY),
+  )
+  if (wasCorrupted) {
+    showStatus('保存データの一部を読み込めなかったため初期化しました')
+    try {
+      // 壊れたデータのまま残ると再読み込みのたびに通知が出るため、救済後の状態で上書きする
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(loaded))
+    } catch {
+      // 保存に失敗しても起動は継続する
+    }
   }
+  return loaded
 }
 
 function saveThoughts() {
@@ -124,6 +134,41 @@ function showStatus(message) {
   }, 2600)
 }
 
+// 初回のみ触りながら理解できるよう、最初の数回だけ短い補助を出す。
+// 各段階は一度出したら再表示しない（説明だらけにしないため）。
+function getShownHintStages() {
+  try {
+    const stages = JSON.parse(localStorage.getItem(HINT_STAGES_KEY))
+    return Array.isArray(stages) ? stages : []
+  } catch {
+    return []
+  }
+}
+
+function markHintStageShown(stage) {
+  const stages = getShownHintStages()
+  if (stages.includes(stage)) return
+  stages.push(stage)
+  try {
+    localStorage.setItem(HINT_STAGES_KEY, JSON.stringify(stages))
+  } catch {
+    // 保存できなくても表示自体は継続する
+  }
+}
+
+function maybeShowOnboardingHint(countAfterAdd) {
+  const stages = getShownHintStages()
+  if (countAfterAdd === 1 && !stages.includes('first-add')) {
+    markHintStageShown('first-add')
+    showStatus('ドラッグで動かせます。タップで編集・削除できます')
+    return
+  }
+  if (countAfterAdd === 2 && !stages.includes('second-add')) {
+    markHintStageShown('second-add')
+    showStatus('近づけるとメニューの「つなぐ」で色も近づけられます')
+  }
+}
+
 function showConfirm(message, onConfirm) {
   confirmDialogMessage.textContent = message
   confirmDialogEl.showModal()
@@ -153,17 +198,6 @@ function exportThoughts() {
   showStatus('エクスポートしました')
 }
 
-function isValidThought(value) {
-  return (
-    value &&
-    typeof value.id === 'string' &&
-    typeof value.title === 'string' &&
-    typeof value.note === 'string' &&
-    typeof value.color === 'string' &&
-    typeof value.radius === 'number'
-  )
-}
-
 function importThoughts(file) {
   if (!file) return
   if (file.size > 2 * 1024 * 1024) {
@@ -175,7 +209,7 @@ function importThoughts(file) {
   reader.onload = event => {
     try {
       const payload = JSON.parse(event.target.result)
-      if (!Array.isArray(payload.thoughts) || !payload.thoughts.every(isValidThought)) {
+      if (!Array.isArray(payload.thoughts) || !payload.thoughts.every(GatherDataIntegrity.isValidThought)) {
         throw new Error('invalid')
       }
       showConfirm('現在の考えを置き換えてインポートしますか？', () => {
@@ -468,7 +502,7 @@ function draw() {
 
     const fontSize = Math.max(11, Math.min(16, thought.radius / 2.3))
     ctx.fillStyle = '#172033'
-    ctx.font = `${fontSize}px sans-serif`
+    ctx.font = `${fontSize}px "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", system-ui, sans-serif`
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
     fillWrappedText(ctx, thought.title, thought.x, thought.y, thought.radius * 1.6, fontSize * 1.3)
@@ -482,6 +516,10 @@ function tick() {
 }
 
 function normalizeThoughts() {
+  if (!Array.isArray(thoughts)) {
+    thoughts = []
+    return
+  }
   thoughts = thoughts.map(thought => ({
     ...thought,
     color: thought.color ?? DEFAULT_COLOR,
@@ -553,6 +591,8 @@ function openCreateDialog() {
   sizeInput.value = DEFAULT_SIZE
   setColorFromHex(DEFAULT_COLOR)
   updateSizePreview()
+  // 初回は名前だけで置けるよう、色・大きさの調整は閉じた状態で始める
+  if (appearanceDetails) appearanceDetails.open = false
   dialog.showModal()
   titleInput.focus()
 }
@@ -562,6 +602,7 @@ function openEditDialog(id) {
   if (!thought) return
 
   editingId = thought.id
+  hasUnsavedEdits = false
   dialogTitle.textContent = '考えを編集'
   deleteThoughtButton.hidden = false
   if (duplicateThoughtButton) duplicateThoughtButton.hidden = false
@@ -571,12 +612,15 @@ function openEditDialog(id) {
   sizeInput.value = thought.radius
   setColorFromHex(thought.color)
   updateSizePreview()
+  // 編集時はすでに決めた見た目を見に来ているはずなので開いておく
+  if (appearanceDetails) appearanceDetails.open = true
   dialog.showModal()
   titleInput.focus()
 }
 
 function closeDialog() {
   editingId = null
+  hasUnsavedEdits = false
   dialog.close()
 }
 
@@ -613,10 +657,14 @@ function openMenu() {
   if (firstItem) firstItem.focus()
 }
 
-function closeMenu() {
+// restoreFocus: メニューを開いた状態から明示的に閉じる操作（トグル・Escape・項目選択）でのみ
+// menuButton へフォーカスを戻す。画面外側クリックでの間接的な close では
+// クリック先が持つフォーカスを奪わないようにする。
+function closeMenu({ restoreFocus = true } = {}) {
+  if (actionMenu.hidden) return
   actionMenu.hidden = true
   menuButton.setAttribute('aria-expanded', 'false')
-  menuButton.focus()
+  if (restoreFocus) menuButton.focus()
 }
 
 menuButton.addEventListener('click', event => {
@@ -634,7 +682,7 @@ function closeHelp() {
   helpDialog.close()
 }
 
-document.addEventListener('click', () => closeMenu())
+document.addEventListener('click', () => closeMenu({ restoreFocus: false }))
 
 actionMenu.addEventListener('click', event => {
   event.stopPropagation()
@@ -660,15 +708,16 @@ helpDialog.addEventListener('click', event => {
   if (event.target === helpDialog) closeHelp()
 })
 
+form.addEventListener('input', () => {
+  if (editingId) hasUnsavedEdits = true
+})
+
 form.addEventListener('submit', event => {
   event.preventDefault()
-  const isFirst = thoughts.length === 0
+  const isCreate = !editingId
   updateThoughtFromForm()
   closeDialog()
-  if (isFirst && !localStorage.getItem(HINT_SHOWN_KEY)) {
-    localStorage.setItem(HINT_SHOWN_KEY, '1')
-    showStatus('円をタップして編集・削除できます')
-  }
+  if (isCreate) maybeShowOnboardingHint(thoughts.length)
 })
 
 
@@ -947,6 +996,10 @@ setColorFromHex(DEFAULT_COLOR)
 updateEmptyStateA11y()
 animationFrame = requestAnimationFrame(tick)
 
-window.addEventListener('beforeunload', () => {
+window.addEventListener('beforeunload', event => {
   if (animationFrame) cancelAnimationFrame(animationFrame)
+  if (editingId && hasUnsavedEdits) {
+    event.preventDefault()
+    event.returnValue = ''
+  }
 })

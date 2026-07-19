@@ -32,6 +32,7 @@ const importFile = document.querySelector('#import-file')
 const statusMessage = document.querySelector('#status-message')
 const emptyState = document.querySelector('#empty-state')
 const emptyStateAddButton = document.querySelector('#empty-state-add')
+const emptyStateHelpButton = document.querySelector('#empty-state-help')
 const emptyStateMessage = document.querySelector('#empty-state-message')
 const thoughtsA11y = document.querySelector('#thoughts-a11y')
 const thoughtListSr = document.querySelector('#thought-list-sr')
@@ -39,6 +40,9 @@ const blendModeButton = document.querySelector('#blend-mode')
 const blendStrengthInput = document.querySelector('#blend-strength')
 const menuButton = document.querySelector('#menu-button')
 const actionMenu = document.querySelector('.action-menu')
+const openHelpButton = document.querySelector('#open-help')
+const helpDialog = document.querySelector('#help-dialog')
+const closeHelpButton = document.querySelector('#close-help')
 const sizePreviewCircle = document.querySelector('#size-preview-circle')
 const circleActionMenu = document.querySelector('#circle-action-menu')
 const circleEditButton = document.querySelector('#circle-edit')
@@ -113,12 +117,11 @@ function updateEmptyStateA11y() {
       : `${thoughts.length}個の考えがあります。` + thoughts.map(t => t.title).join('、')
   }
   if (thoughtListSr) {
-    // ユーザーデータをHTMLとして解釈させない（XSS対策でDOM APIを使う）
-    thoughtListSr.textContent = ''
+    thoughtListSr.replaceChildren()
     thoughts.forEach(t => {
-      const li = document.createElement('li')
-      li.textContent = (t.title || '（タイトルなし）') + (t.note ? `：${t.note}` : '')
-      thoughtListSr.append(li)
+      const item = document.createElement('li')
+      item.textContent = `${t.title || '（タイトルなし）'}${t.note ? `：${t.note}` : ''}`
+      thoughtListSr.appendChild(item)
     })
   }
 }
@@ -670,6 +673,15 @@ menuButton.addEventListener('click', event => {
   else closeMenu()
 })
 
+function openHelp() {
+  if (!actionMenu.hidden) closeMenu()
+  helpDialog.showModal()
+}
+
+function closeHelp() {
+  helpDialog.close()
+}
+
 document.addEventListener('click', () => closeMenu({ restoreFocus: false }))
 
 actionMenu.addEventListener('click', event => {
@@ -683,11 +695,18 @@ blendModeButton.addEventListener('click', () => {
 
 addThoughtButton.addEventListener('click', openCreateDialog)
 emptyStateAddButton.addEventListener('click', openCreateDialog)
+emptyStateHelpButton.addEventListener('click', openHelp)
+openHelpButton.addEventListener('click', openHelp)
+closeHelpButton.addEventListener('click', closeHelp)
 closeDialogButton.addEventListener('click', closeDialog)
 exportButton.addEventListener('click', () => { closeMenu(); exportThoughts() })
 importButton.addEventListener('click', () => { closeMenu(); importFile.click() })
 importFile.addEventListener('change', event => importThoughts(event.target.files?.[0]))
 checkUpdateButton.addEventListener('click', () => { closeMenu(); checkForUpdate() })
+
+helpDialog.addEventListener('click', event => {
+  if (event.target === helpDialog) closeHelp()
+})
 
 form.addEventListener('input', () => {
   if (editingId) hasUnsavedEdits = true

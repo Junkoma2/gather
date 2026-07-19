@@ -23,12 +23,14 @@
             <button id="menu-button" class="icon-button" type="button" aria-label="メニューを開く" aria-expanded="false" aria-haspopup="true">⋮</button>
             <div class="action-menu" role="menu" hidden>
               <div class="blend-control">
-                <button id="blend-mode" class="action-menu-item" type="button" role="menuitem" aria-label="2つの円を選んで色を近づける">つなぐ</button>
+                <button id="blend-mode" class="action-menu-item" type="button" role="menuitem" aria-label="2つの円を選んで色を近づける" aria-describedby="blend-help">つなぐ</button>
+                <p id="blend-help" class="blend-help">2つの円を順番に選ぶと、最初の円の色が次の円へ近づきます。</p>
                 <div class="blend-strength-row">
                   <span class="blend-strength-label">強さ</span>
                   <input id="blend-strength" type="range" min="1" max="100" value="30" aria-label="近づける強さ" />
                 </div>
               </div>
+              <button id="open-help" type="button" role="menuitem">使い方</button>
               <button id="check-update" type="button" role="menuitem" aria-label="更新を確認">更新を確認</button>
               <button id="export-data" type="button" role="menuitem" aria-label="エクスポート">エクスポート</button>
               <button id="import-data" type="button" role="menuitem" aria-label="インポート">インポート</button>
@@ -47,6 +49,7 @@
         <div id="empty-state" class="empty-state">
           <p>考えを置いて、近さから関係を眺めます。</p>
           <button id="empty-state-add" type="button">考えを追加</button>
+          <button id="empty-state-help" class="text-button" type="button">使い方を見る</button>
         </div>
         <p id="empty-state-message" class="visually-hidden" aria-live="polite">考えがまだありません。考えを追加できます。</p>
         <div id="thoughts-a11y" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
@@ -140,6 +143,18 @@
     </div>
 
     <!-- 確認ダイアログ（window.confirm の代替） -->
+    <dialog id="help-dialog" class="help-dialog" aria-labelledby="help-dialog-title">
+      <div class="dialog-header">
+        <h2 id="help-dialog-title">使い方</h2>
+        <button id="close-help" class="icon-button" type="button" aria-label="使い方を閉じる">×</button>
+      </div>
+      <div class="help-content">
+        <section><h3>考えを置く</h3><p>右上の＋から考えを追加します。円はドラッグして、気になる位置へ動かせます。</p></section>
+        <section><h3>近さを眺める</h3><p>色が近い考え同士は引き合い、色が離れた考え同士は遠ざかります。動きながら変わる関係を眺めてみてください。</p></section>
+        <section><h3>考えをつなぐ</h3><p>メニューの「つなぐ」で2つの円を順番に選ぶと、最初の円の色が次の円へ近づきます。強さも調整できます。</p></section>
+      </div>
+    </dialog>
+
     <dialog id="confirm-dialog" class="confirm-dialog">
       <p id="confirm-dialog-message"></p>
       <div class="confirm-dialog-actions">
